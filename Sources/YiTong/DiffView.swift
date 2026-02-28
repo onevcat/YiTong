@@ -21,6 +21,7 @@ public struct DiffView: UIViewControllerRepresentable {
   }
 
   public func updateUIViewController(_ uiViewController: DiffViewController, context: Context) {
+    uiViewController.update(document: document, configuration: configuration)
   }
 }
 #elseif canImport(AppKit)
@@ -44,6 +45,7 @@ public struct DiffView: NSViewControllerRepresentable {
   }
 
   public func updateNSViewController(_ nsViewController: DiffViewController, context: Context) {
+    nsViewController.update(document: document, configuration: configuration)
   }
 }
 #endif

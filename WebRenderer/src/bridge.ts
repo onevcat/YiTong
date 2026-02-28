@@ -3,9 +3,11 @@ import {
   RENDERER_VERSION,
   type Envelope,
   type IncomingMessageType,
+  type LineActivatedPayload,
   type OutgoingMessageType,
   type ReadyPayload,
   type RenderStateChangedPayload,
+  type SelectionChangedPayload,
 } from "./protocol";
 
 declare global {
@@ -55,10 +57,21 @@ export function postRenderStateChanged(payload: RenderStateChangedPayload) {
   postToNative("renderStateChanged", payload);
 }
 
+export function postLineActivated(payload: LineActivatedPayload) {
+  postToNative("lineActivated", payload);
+}
+
+export function postSelectionChanged(payload: SelectionChangedPayload) {
+  postToNative("selectionChanged", payload);
+}
+
 export function installMessageReceiver(handler: IncomingHandler) {
   incomingHandler = handler;
   window.__yitongReceiveMessage = async (message: string) => {
     const envelope = JSON.parse(message) as Envelope<IncomingMessageType, unknown>;
+    if (envelope.protocolVersion !== PROTOCOL_VERSION) {
+      throw new Error(`Unsupported protocol version ${envelope.protocolVersion}`);
+    }
     await incomingHandler?.(envelope);
   };
 }

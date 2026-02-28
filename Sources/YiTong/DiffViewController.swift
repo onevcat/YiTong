@@ -8,9 +8,10 @@ import UIKit
 @MainActor
 public final class DiffViewController: UIViewController {
   private let host = YiTongWebViewHost(platform: .ios)
-  private let document: DiffDocument
+  private var document: DiffDocument
   private var configuration: DiffConfiguration
   private let onEvent: ((DiffEvent) -> Void)?
+  private var documentIdentifier = UUID().uuidString
 
   public init(
     document: DiffDocument,
@@ -55,7 +56,7 @@ public final class DiffViewController: UIViewController {
   private func makeRenderRequest() -> YiTongRenderRequest {
     YiTongRenderRequest(
       document: YiTongBridgeDocumentPayload(
-        identifier: "document-1",
+        identifier: documentIdentifier,
         title: document.title,
         patch: document.patch
       ),
@@ -82,6 +83,32 @@ public final class DiffViewController: UIViewController {
     )
   }
 
+  func update(document: DiffDocument, configuration: DiffConfiguration) {
+    let documentChanged = self.document != document
+    let configurationChanged = self.configuration != configuration
+
+    guard documentChanged || configurationChanged else {
+      return
+    }
+
+    self.document = document
+    self.configuration = configuration
+
+    guard isViewLoaded else {
+      if documentChanged {
+        documentIdentifier = UUID().uuidString
+      }
+      return
+    }
+
+    if documentChanged {
+      documentIdentifier = UUID().uuidString
+      host.render(request: makeRenderRequest())
+    } else if configurationChanged {
+      host.updateConfiguration(makeRenderRequest().configuration)
+    }
+  }
+
   private func resolveAppearance(_ appearance: DiffAppearance) -> YiTongBridgeResolvedAppearance {
     switch appearance {
     case .automatic:
@@ -99,6 +126,77 @@ public final class DiffViewController: UIViewController {
       onEvent?(.didFinishInitialLoad)
     case .didRender(let fileCount):
       onEvent?(.didRender(DiffRenderSummary(fileCount: fileCount)))
+    case .didActivateLine(let payload):
+      onEvent?(
+        .didClickLine(
+          DiffLineReference(
+            fileIndex: payload.fileIndex,
+            oldPath: payload.oldPath,
+            newPath: payload.newPath,
+            side: {
+              switch payload.side {
+              case .old:
+                return .old
+              case .new:
+                return .new
+              case .unified:
+                return .unified
+              }
+            }(),
+            number: payload.number,
+            kind: {
+              switch payload.kind {
+              case .context:
+                return .context
+              case .addition:
+                return .addition
+              case .deletion:
+                return .deletion
+              case .metadata:
+                return .metadata
+              case .expanded:
+                return .expanded
+              }
+            }()
+          )
+        )
+      )
+    case .didChangeSelection(let selection):
+      onEvent?(
+        .didChangeSelection(
+          selection.map { selection in
+            DiffSelection(
+              fileIndex: selection.fileIndex,
+              start: DiffSelectionEndpoint(
+                side: {
+                  switch selection.start.side {
+                  case .old:
+                    return .old
+                  case .new:
+                    return .new
+                  case .unified:
+                    return .unified
+                  }
+                }(),
+                number: selection.start.number
+              ),
+              end: DiffSelectionEndpoint(
+                side: {
+                  switch selection.end.side {
+                  case .old:
+                    return .old
+                  case .new:
+                    return .new
+                  case .unified:
+                    return .unified
+                  }
+                }(),
+                number: selection.end.number
+              )
+            )
+          }
+        )
+      )
     case .didFail(let code, let message):
       onEvent?(.didFail(DiffError(code: code, message: message)))
     }
@@ -110,9 +208,10 @@ import AppKit
 @MainActor
 public final class DiffViewController: NSViewController {
   private let host = YiTongWebViewHost(platform: .macos)
-  private let document: DiffDocument
+  private var document: DiffDocument
   private var configuration: DiffConfiguration
   private let onEvent: ((DiffEvent) -> Void)?
+  private var documentIdentifier = UUID().uuidString
 
   public init(
     document: DiffDocument,
@@ -156,7 +255,7 @@ public final class DiffViewController: NSViewController {
   private func makeRenderRequest() -> YiTongRenderRequest {
     YiTongRenderRequest(
       document: YiTongBridgeDocumentPayload(
-        identifier: "document-1",
+        identifier: documentIdentifier,
         title: document.title,
         patch: document.patch
       ),
@@ -183,6 +282,32 @@ public final class DiffViewController: NSViewController {
     )
   }
 
+  func update(document: DiffDocument, configuration: DiffConfiguration) {
+    let documentChanged = self.document != document
+    let configurationChanged = self.configuration != configuration
+
+    guard documentChanged || configurationChanged else {
+      return
+    }
+
+    self.document = document
+    self.configuration = configuration
+
+    guard isViewLoaded else {
+      if documentChanged {
+        documentIdentifier = UUID().uuidString
+      }
+      return
+    }
+
+    if documentChanged {
+      documentIdentifier = UUID().uuidString
+      host.render(request: makeRenderRequest())
+    } else if configurationChanged {
+      host.updateConfiguration(makeRenderRequest().configuration)
+    }
+  }
+
   private func resolveAppearance(_ appearance: DiffAppearance) -> YiTongBridgeResolvedAppearance {
     switch appearance {
     case .automatic:
@@ -200,6 +325,77 @@ public final class DiffViewController: NSViewController {
       onEvent?(.didFinishInitialLoad)
     case .didRender(let fileCount):
       onEvent?(.didRender(DiffRenderSummary(fileCount: fileCount)))
+    case .didActivateLine(let payload):
+      onEvent?(
+        .didClickLine(
+          DiffLineReference(
+            fileIndex: payload.fileIndex,
+            oldPath: payload.oldPath,
+            newPath: payload.newPath,
+            side: {
+              switch payload.side {
+              case .old:
+                return .old
+              case .new:
+                return .new
+              case .unified:
+                return .unified
+              }
+            }(),
+            number: payload.number,
+            kind: {
+              switch payload.kind {
+              case .context:
+                return .context
+              case .addition:
+                return .addition
+              case .deletion:
+                return .deletion
+              case .metadata:
+                return .metadata
+              case .expanded:
+                return .expanded
+              }
+            }()
+          )
+        )
+      )
+    case .didChangeSelection(let selection):
+      onEvent?(
+        .didChangeSelection(
+          selection.map { selection in
+            DiffSelection(
+              fileIndex: selection.fileIndex,
+              start: DiffSelectionEndpoint(
+                side: {
+                  switch selection.start.side {
+                  case .old:
+                    return .old
+                  case .new:
+                    return .new
+                  case .unified:
+                    return .unified
+                  }
+                }(),
+                number: selection.start.number
+              ),
+              end: DiffSelectionEndpoint(
+                side: {
+                  switch selection.end.side {
+                  case .old:
+                    return .old
+                  case .new:
+                    return .new
+                  case .unified:
+                    return .unified
+                  }
+                }(),
+                number: selection.end.number
+              )
+            )
+          }
+        )
+      )
     case .didFail(let code, let message):
       onEvent?(.didFail(DiffError(code: code, message: message)))
     }

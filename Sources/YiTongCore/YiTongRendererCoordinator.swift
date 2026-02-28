@@ -27,6 +27,10 @@ public struct YiTongRendererCoordinator: Equatable, Sendable {
   }
 
   public mutating func setRenderRequest(_ request: YiTongRenderRequest) -> [YiTongHostCommand] {
+    guard session.state != .terminated else {
+      return []
+    }
+
     self.request = request
 
     guard hasReceivedReady else {
@@ -40,10 +44,32 @@ public struct YiTongRendererCoordinator: Equatable, Sendable {
     ]
   }
 
+  public mutating func updateConfiguration(_ configuration: YiTongBridgeConfigurationPayload) -> [YiTongHostCommand] {
+    guard session.state != .terminated, let request else {
+      return []
+    }
+
+    self.request = YiTongRenderRequest(document: request.document, configuration: configuration)
+
+    guard hasReceivedReady else {
+      return []
+    }
+
+    return [.updateConfiguration(configuration)]
+  }
+
   public mutating func handleReady(
     payload: YiTongReadyPayload,
     platform: YiTongBridgePlatform
   ) throws -> ([YiTongHostCommand], YiTongHostEvent?) {
+    guard session.state != .terminated else {
+      return ([], nil)
+    }
+
+    guard !hasReceivedReady else {
+      return ([], nil)
+    }
+
     hasReceivedReady = true
     session.state = .renderingDocument
 
@@ -79,6 +105,16 @@ public struct YiTongRendererCoordinator: Equatable, Sendable {
   public mutating func handleRenderStateChanged(
     payload: YiTongRenderStateChangedPayload
   ) -> YiTongHostEvent? {
+    guard session.state != .terminated else {
+      return nil
+    }
+
+    if let payloadDocumentIdentifier = payload.documentIdentifier,
+       let currentDocumentIdentifier = request?.document.identifier,
+       payloadDocumentIdentifier != currentDocumentIdentifier {
+      return nil
+    }
+
     switch payload.state {
     case .loading:
       session.state = .renderingDocument
@@ -93,5 +129,17 @@ public struct YiTongRendererCoordinator: Equatable, Sendable {
         message: payload.error?.message ?? "Unknown render failure"
       )
     }
+  }
+
+  public mutating func terminate() -> [YiTongHostCommand] {
+    guard session.state != .terminated else {
+      return []
+    }
+
+    session.state = .terminated
+    hasReceivedReady = false
+    hasSentInitialize = false
+
+    return [.teardown(YiTongEmptyPayload())]
   }
 }

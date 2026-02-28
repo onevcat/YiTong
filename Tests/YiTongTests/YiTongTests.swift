@@ -28,4 +28,16 @@ final class YiTongTests: XCTestCase {
 
     XCTAssertNotNil(controller)
   }
+
+  @MainActor
+  func testDiffViewControllerAcceptsDocumentAndConfigurationUpdatesBeforeViewLoads() {
+    let controller = DiffViewController(document: DiffDocument(patch: "diff --git a/a.txt b/a.txt"))
+
+    controller.update(
+      document: DiffDocument(patch: "diff --git a/b.txt b/b.txt", title: "Updated"),
+      configuration: DiffConfiguration(style: .unified, showsLineNumbers: false)
+    )
+
+    XCTAssertNotNil(controller)
+  }
 }

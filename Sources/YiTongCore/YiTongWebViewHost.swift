@@ -88,9 +88,13 @@ public final class YiTongWebViewHost: NSObject {
   }
 
   deinit {
-    webView.configuration.userContentController.removeScriptMessageHandler(forName: Constants.scriptMessageHandlerName)
-    if diagnosticsEnabled {
-      webView.configuration.userContentController.removeScriptMessageHandler(forName: Constants.diagnosticMessageHandlerName)
+    let userContentController = webView.configuration.userContentController
+    let diagnosticsEnabled = diagnosticsEnabled
+    MainActor.assumeIsolated {
+      userContentController.removeScriptMessageHandler(forName: Constants.scriptMessageHandlerName)
+      if diagnosticsEnabled {
+        userContentController.removeScriptMessageHandler(forName: Constants.diagnosticMessageHandlerName)
+      }
     }
   }
 
@@ -114,13 +118,31 @@ public final class YiTongWebViewHost: NSObject {
     webView.loadFileURL(fileURL, allowingReadAccessTo: YiTongWebAssets.resourcesDirectory)
   }
 
+  public func render(request: YiTongRenderRequest) {
+    currentRequest = request
+    let commands = coordinator.setRenderRequest(request)
+    for command in commands {
+      send(command)
+    }
+  }
+
   public func updateConfiguration(_ configuration: YiTongBridgeConfigurationPayload) {
     guard let request = currentRequest else {
       return
     }
 
     currentRequest = YiTongRenderRequest(document: request.document, configuration: configuration)
-    _ = coordinator.setRenderRequest(currentRequest!)
+    let commands = coordinator.updateConfiguration(configuration)
+    for command in commands {
+      send(command)
+    }
+  }
+
+  public func teardown() {
+    let commands = coordinator.terminate()
+    for command in commands {
+      send(command)
+    }
   }
 
   private func handleReady(_ data: Data) {
@@ -157,6 +179,30 @@ public final class YiTongWebViewHost: NSObject {
     }
   }
 
+  private func handleLineActivated(_ data: Data) {
+    do {
+      let envelope = try YiTongBridgeCodec.decode(
+        YiTongBridgeIncomingEnvelope<YiTongLineActivatedPayload>.self,
+        from: data
+      )
+      eventHandler?(.didActivateLine(envelope.payload))
+    } catch {
+      eventHandler?(.didFail(code: "bridge_decode_failed", message: error.localizedDescription))
+    }
+  }
+
+  private func handleSelectionChanged(_ data: Data) {
+    do {
+      let envelope = try YiTongBridgeCodec.decode(
+        YiTongBridgeIncomingEnvelope<YiTongSelectionChangedPayload>.self,
+        from: data
+      )
+      eventHandler?(.didChangeSelection(envelope.payload.selection))
+    } catch {
+      eventHandler?(.didFail(code: "bridge_decode_failed", message: error.localizedDescription))
+    }
+  }
+
   private func send(_ command: YiTongHostCommand) {
     let encodedData: Data
 
@@ -178,6 +224,22 @@ public final class YiTongWebViewHost: NSObject {
             payload: payload
           )
         )
+      case .updateConfiguration(let payload):
+        encodedData = try YiTongBridgeCodec.encode(
+          YiTongBridgeOutgoingEnvelope(
+            id: nextID(),
+            type: .updateConfiguration,
+            payload: payload
+          )
+        )
+      case .teardown(let payload):
+        encodedData = try YiTongBridgeCodec.encode(
+          YiTongBridgeOutgoingEnvelope(
+            id: nextID(),
+            type: .teardown,
+            payload: payload
+          )
+        )
       }
     } catch {
       eventHandler?(.didFail(code: "bridge_encode_failed", message: error.localizedDescription))
@@ -189,18 +251,16 @@ public final class YiTongWebViewHost: NSObject {
       return
     }
 
-    Task {
-      do {
-        log("Sending command: \(command.logDescription)")
-        _ = try await webView.callAsyncJavaScript(
-          "window.__yitongReceiveMessage(message)",
-          arguments: ["message": jsonString],
-          in: nil,
-          in: .page
-        )
-      } catch {
-        log("Failed to send command: \(error.localizedDescription)")
-        eventHandler?(.didFail(code: "bridge_send_failed", message: error.localizedDescription))
+    log("Sending command: \(command.logDescription)")
+    webView.callAsyncJavaScript(
+      "window.__yitongReceiveMessage(message)",
+      arguments: ["message": jsonString],
+      in: nil,
+      in: .page
+    ) { [weak self] result in
+      if case .failure(let error) = result {
+        self?.log("Failed to send command: \(error.localizedDescription)")
+        self?.eventHandler?(.didFail(code: "bridge_send_failed", message: error.localizedDescription))
       }
     }
   }
@@ -306,6 +366,10 @@ extension YiTongWebViewHost: WKScriptMessageHandler {
         handleReady(data)
       case YiTongBridgeIncomingType.renderStateChanged.rawValue:
         handleRenderStateChanged(data)
+      case YiTongBridgeIncomingType.lineActivated.rawValue:
+        handleLineActivated(data)
+      case YiTongBridgeIncomingType.selectionChanged.rawValue:
+        handleSelectionChanged(data)
       default:
         break
       }
@@ -323,6 +387,10 @@ private extension YiTongHostCommand {
       return "initialize"
     case .renderDocument(let payload):
       return "renderDocument(documentIdentifier: \(payload.document.identifier))"
+    case .updateConfiguration:
+      return "updateConfiguration"
+    case .teardown:
+      return "teardown"
     }
   }
 }
