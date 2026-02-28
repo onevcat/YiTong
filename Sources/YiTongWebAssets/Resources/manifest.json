@@ -1,0 +1,9 @@
+{
+  "rendererVersion": "0.1.0-placeholder",
+  "protocolVersion": 1,
+  "files": [
+    "index.html",
+    "renderer.js",
+    "renderer.css"
+  ]
+}
