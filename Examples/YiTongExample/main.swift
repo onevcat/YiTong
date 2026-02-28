@@ -36,6 +36,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 struct ExampleContentView: View {
   @State private var latestEvent: String = "Waiting for renderer..."
+  @State private var eventLog: [String] = []
+  @State private var style: DiffStyle = .split
+  @State private var indicators: DiffIndicators = .bars
+  @State private var showsLineNumbers = true
+  @State private var showsChangeBackgrounds = true
+  @State private var wrapsLines = false
+  @State private var showsFileHeaders = true
+  @State private var allowsSelection = true
 
   private let document = DiffDocument(
     patch: SamplePatch.multiFile,
@@ -46,13 +54,15 @@ struct ExampleContentView: View {
     VStack(spacing: 0) {
       header
       Divider()
-      DiffView(
-        document: document,
-        configuration: .default,
-        onEvent: { event in
-          latestEvent = describe(event)
-        }
-      )
+      HSplitView {
+        controlPanel
+          .frame(minWidth: 280, idealWidth: 320, maxWidth: 360)
+        DiffView(
+          document: document,
+          configuration: configuration,
+          onEvent: handleEvent
+        )
+      }
     }
     .frame(minWidth: 960, minHeight: 640)
   }
@@ -75,6 +85,82 @@ struct ExampleContentView: View {
     .background(.bar)
   }
 
+  private var controlPanel: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 20) {
+        GroupBox("Layout") {
+          VStack(alignment: .leading, spacing: 12) {
+            Picker("Style", selection: $style) {
+              Text("Split").tag(DiffStyle.split)
+              Text("Unified").tag(DiffStyle.unified)
+            }
+
+            Picker("Indicators", selection: $indicators) {
+              Text("Bars").tag(DiffIndicators.bars)
+              Text("Classic").tag(DiffIndicators.classic)
+              Text("None").tag(DiffIndicators.none)
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        GroupBox("Display") {
+          VStack(alignment: .leading, spacing: 10) {
+            Toggle("Show line numbers", isOn: $showsLineNumbers)
+            Toggle("Show change backgrounds", isOn: $showsChangeBackgrounds)
+            Toggle("Wrap long lines", isOn: $wrapsLines)
+            Toggle("Show file headers", isOn: $showsFileHeaders)
+            Toggle("Allow text selection", isOn: $allowsSelection)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        GroupBox("Acceptance") {
+          VStack(alignment: .leading, spacing: 8) {
+            Text("Use the controls to verify runtime updates without reloading the host app.")
+              .font(.callout)
+              .foregroundStyle(.secondary)
+
+            Button("Reset to Defaults", action: resetConfiguration)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        GroupBox("Recent Events") {
+          VStack(alignment: .leading, spacing: 8) {
+            ForEach(Array(eventLog.enumerated()), id: \.offset) { _, event in
+              Text(event)
+                .font(.footnote.monospaced())
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            if eventLog.isEmpty {
+              Text("No events yet.")
+                .font(.footnote)
+                .foregroundStyle(.tertiary)
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+      }
+      .padding(16)
+    }
+    .background(Color(nsColor: .windowBackgroundColor))
+  }
+
+  private var configuration: DiffConfiguration {
+    DiffConfiguration(
+      style: style,
+      indicators: indicators,
+      showsLineNumbers: showsLineNumbers,
+      showsChangeBackgrounds: showsChangeBackgrounds,
+      wrapsLines: wrapsLines,
+      showsFileHeaders: showsFileHeaders,
+      allowsSelection: allowsSelection
+    )
+  }
+
   private func describe(_ event: DiffEvent) -> String {
     switch event {
     case .didFinishInitialLoad:
@@ -91,6 +177,22 @@ struct ExampleContentView: View {
     case .didFail(let error):
       return "didFail(\(error.code))"
     }
+  }
+
+  private func handleEvent(_ event: DiffEvent) {
+    let description = describe(event)
+    latestEvent = description
+    eventLog = Array(([description] + eventLog).prefix(8))
+  }
+
+  private func resetConfiguration() {
+    style = .split
+    indicators = .bars
+    showsLineNumbers = true
+    showsChangeBackgrounds = true
+    wrapsLines = false
+    showsFileHeaders = true
+    allowsSelection = true
   }
 }
 

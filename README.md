@@ -53,6 +53,59 @@ make run-example
 
 This launches a minimal macOS example app backed by the current local package code and bundled web assets.
 
+The example is also the preferred manual acceptance path for the current public surface. It exposes live controls for:
+
+- split vs unified layout
+- diff indicators
+- line numbers
+- change backgrounds
+- line wrapping
+- file headers
+- selection behavior
+
+The expected behavior is that these updates apply while the host app stays running, and that event output continues to update in the example sidebar.
+
+## Feature Mapping
+
+YiTong intentionally exposes a smaller Swift-facing API than the full `diffs` vanilla JS surface.
+
+For options that map cleanly into stable Apple-facing semantics, the current public API is:
+
+| `diffs` vanilla option | YiTong public API | Status | Notes |
+| --- | --- | --- | --- |
+| `diffStyle` | `DiffConfiguration.style` | Supported | `split` / `unified` |
+| `lineDiffType` | `DiffConfiguration.inlineChangeStyle` | Supported | `word-alt` maps to `wordAlt` |
+| `diffIndicators` | `DiffConfiguration.indicators` | Supported | `bars` / `classic` / `none` |
+| `disableBackground` | `DiffConfiguration.showsChangeBackgrounds` | Supported | Inverted semantics in Swift |
+| `disableLineNumbers` | `DiffConfiguration.showsLineNumbers` | Supported | Inverted semantics in Swift |
+| `overflow` | `DiffConfiguration.wrapsLines` | Supported | `wrap` vs scrolling behavior |
+| `disableFileHeader` | `DiffConfiguration.showsFileHeaders` | Supported | Inverted semantics in Swift |
+| `enableLineSelection` | `DiffConfiguration.allowsSelection` | Supported | Also drives native selection events |
+| `themeType` | `DiffConfiguration.appearance` | Supported | YiTong resolves native appearance to renderer theme internally |
+| `theme` | Not public | Intentionally hidden | YiTong does not expose upstream theme names in v1 |
+| `renderHeaderMetadata` | Not public | Not supported | Would require a YiTong-native data model, not raw DOM injection |
+| annotation/comment hooks | Not public | Not supported | Deferred until a native review model exists |
+| worker pool options | Not public | Not supported | Upstream marks worker mode as experimental |
+| custom DOM / unsafe CSS hooks | Not public | Not supported | Explicitly out of v1 scope |
+
+### Naming Policy
+
+YiTong does not mirror every upstream option name 1:1.
+
+The rule is:
+
+- when an option represents a stable user-facing concept on Apple platforms, expose it with a Swift-native name
+- when an option leaks web implementation details, keep it internal
+
+That is why some names differ:
+
+- `lineDiffType` -> `inlineChangeStyle`
+- `disableBackground` -> `showsChangeBackgrounds`
+- `disableLineNumbers` -> `showsLineNumbers`
+- `disableFileHeader` -> `showsFileHeaders`
+
+The intent is to make the Swift API read like product semantics rather than web renderer switches, while keeping the mapping documented and explicit.
+
 ### Maintainer Workflow
 
 Install web dependencies:

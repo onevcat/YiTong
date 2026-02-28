@@ -25,6 +25,8 @@ export function toDiffOptions(configuration: RenderConfigurationPayload) {
     },
     themeType: resolveThemeType(configuration.resolvedAppearance),
     diffStyle: configuration.diffStyle,
+    diffIndicators: configuration.diffIndicators,
+    disableBackground: !configuration.showsChangeBackgrounds,
     disableLineNumbers: !configuration.showsLineNumbers,
     overflow: configuration.wrapsLines ? "wrap" : "scroll",
     disableFileHeader: !configuration.showsFileHeaders,

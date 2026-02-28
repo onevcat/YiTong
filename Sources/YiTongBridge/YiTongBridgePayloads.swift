@@ -115,6 +115,12 @@ public enum YiTongBridgeDiffStyle: String, Codable, Equatable, Sendable {
   case unified
 }
 
+public enum YiTongBridgeDiffIndicators: String, Codable, Equatable, Sendable {
+  case bars
+  case classic
+  case none
+}
+
 public enum YiTongBridgeInlineChangeStyle: String, Codable, Equatable, Sendable {
   case wordAlt
   case word
@@ -165,7 +171,9 @@ public struct YiTongBridgeDocumentPayload: Codable, Equatable, Sendable {
 
 public struct YiTongBridgeConfigurationPayload: Codable, Equatable, Sendable {
   public var diffStyle: YiTongBridgeDiffStyle
+  public var diffIndicators: YiTongBridgeDiffIndicators
   public var showsLineNumbers: Bool
+  public var showsChangeBackgrounds: Bool
   public var wrapsLines: Bool
   public var showsFileHeaders: Bool
   public var inlineChangeStyle: YiTongBridgeInlineChangeStyle
@@ -174,7 +182,9 @@ public struct YiTongBridgeConfigurationPayload: Codable, Equatable, Sendable {
 
   public init(
     diffStyle: YiTongBridgeDiffStyle,
+    diffIndicators: YiTongBridgeDiffIndicators,
     showsLineNumbers: Bool,
+    showsChangeBackgrounds: Bool,
     wrapsLines: Bool,
     showsFileHeaders: Bool,
     inlineChangeStyle: YiTongBridgeInlineChangeStyle,
@@ -182,7 +192,9 @@ public struct YiTongBridgeConfigurationPayload: Codable, Equatable, Sendable {
     resolvedAppearance: YiTongBridgeResolvedAppearance
   ) {
     self.diffStyle = diffStyle
+    self.diffIndicators = diffIndicators
     self.showsLineNumbers = showsLineNumbers
+    self.showsChangeBackgrounds = showsChangeBackgrounds
     self.wrapsLines = wrapsLines
     self.showsFileHeaders = showsFileHeaders
     self.inlineChangeStyle = inlineChangeStyle

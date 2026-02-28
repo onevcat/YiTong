@@ -54,32 +54,11 @@ public final class DiffViewController: UIViewController {
   }
 
   private func makeRenderRequest() -> YiTongRenderRequest {
-    YiTongRenderRequest(
-      document: YiTongBridgeDocumentPayload(
-        identifier: documentIdentifier,
-        title: document.title,
-        patch: document.patch
-      ),
-      configuration: YiTongBridgeConfigurationPayload(
-        diffStyle: configuration.style == .split ? .split : .unified,
-        showsLineNumbers: configuration.showsLineNumbers,
-        wrapsLines: configuration.wrapsLines,
-        showsFileHeaders: configuration.showsFileHeaders,
-        inlineChangeStyle: {
-          switch configuration.inlineChangeStyle {
-          case .wordAlt:
-            return .wordAlt
-          case .word:
-            return .word
-          case .char:
-            return .char
-          case .none:
-            return .none
-          }
-        }(),
-        allowsSelection: configuration.allowsSelection,
-        resolvedAppearance: resolveAppearance(configuration.appearance)
-      )
+    YiTongPublicModelAdapter.makeRenderRequest(
+      documentIdentifier: documentIdentifier,
+      document: document,
+      configuration: configuration,
+      resolvedAppearance: resolveAppearance(configuration.appearance)
     )
   }
 
@@ -121,85 +100,7 @@ public final class DiffViewController: UIViewController {
   }
 
   private func handle(_ event: YiTongHostEvent) {
-    switch event {
-    case .didFinishInitialLoad:
-      onEvent?(.didFinishInitialLoad)
-    case .didRender(let fileCount):
-      onEvent?(.didRender(DiffRenderSummary(fileCount: fileCount)))
-    case .didActivateLine(let payload):
-      onEvent?(
-        .didClickLine(
-          DiffLineReference(
-            fileIndex: payload.fileIndex,
-            oldPath: payload.oldPath,
-            newPath: payload.newPath,
-            side: {
-              switch payload.side {
-              case .old:
-                return .old
-              case .new:
-                return .new
-              case .unified:
-                return .unified
-              }
-            }(),
-            number: payload.number,
-            kind: {
-              switch payload.kind {
-              case .context:
-                return .context
-              case .addition:
-                return .addition
-              case .deletion:
-                return .deletion
-              case .metadata:
-                return .metadata
-              case .expanded:
-                return .expanded
-              }
-            }()
-          )
-        )
-      )
-    case .didChangeSelection(let selection):
-      onEvent?(
-        .didChangeSelection(
-          selection.map { selection in
-            DiffSelection(
-              fileIndex: selection.fileIndex,
-              start: DiffSelectionEndpoint(
-                side: {
-                  switch selection.start.side {
-                  case .old:
-                    return .old
-                  case .new:
-                    return .new
-                  case .unified:
-                    return .unified
-                  }
-                }(),
-                number: selection.start.number
-              ),
-              end: DiffSelectionEndpoint(
-                side: {
-                  switch selection.end.side {
-                  case .old:
-                    return .old
-                  case .new:
-                    return .new
-                  case .unified:
-                    return .unified
-                  }
-                }(),
-                number: selection.end.number
-              )
-            )
-          }
-        )
-      )
-    case .didFail(let code, let message):
-      onEvent?(.didFail(DiffError(code: code, message: message)))
-    }
+    onEvent?(YiTongPublicModelAdapter.makeDiffEvent(from: event))
   }
 }
 #elseif canImport(AppKit)
@@ -253,32 +154,11 @@ public final class DiffViewController: NSViewController {
   }
 
   private func makeRenderRequest() -> YiTongRenderRequest {
-    YiTongRenderRequest(
-      document: YiTongBridgeDocumentPayload(
-        identifier: documentIdentifier,
-        title: document.title,
-        patch: document.patch
-      ),
-      configuration: YiTongBridgeConfigurationPayload(
-        diffStyle: configuration.style == .split ? .split : .unified,
-        showsLineNumbers: configuration.showsLineNumbers,
-        wrapsLines: configuration.wrapsLines,
-        showsFileHeaders: configuration.showsFileHeaders,
-        inlineChangeStyle: {
-          switch configuration.inlineChangeStyle {
-          case .wordAlt:
-            return .wordAlt
-          case .word:
-            return .word
-          case .char:
-            return .char
-          case .none:
-            return .none
-          }
-        }(),
-        allowsSelection: configuration.allowsSelection,
-        resolvedAppearance: resolveAppearance(configuration.appearance)
-      )
+    YiTongPublicModelAdapter.makeRenderRequest(
+      documentIdentifier: documentIdentifier,
+      document: document,
+      configuration: configuration,
+      resolvedAppearance: resolveAppearance(configuration.appearance)
     )
   }
 
@@ -320,85 +200,7 @@ public final class DiffViewController: NSViewController {
   }
 
   private func handle(_ event: YiTongHostEvent) {
-    switch event {
-    case .didFinishInitialLoad:
-      onEvent?(.didFinishInitialLoad)
-    case .didRender(let fileCount):
-      onEvent?(.didRender(DiffRenderSummary(fileCount: fileCount)))
-    case .didActivateLine(let payload):
-      onEvent?(
-        .didClickLine(
-          DiffLineReference(
-            fileIndex: payload.fileIndex,
-            oldPath: payload.oldPath,
-            newPath: payload.newPath,
-            side: {
-              switch payload.side {
-              case .old:
-                return .old
-              case .new:
-                return .new
-              case .unified:
-                return .unified
-              }
-            }(),
-            number: payload.number,
-            kind: {
-              switch payload.kind {
-              case .context:
-                return .context
-              case .addition:
-                return .addition
-              case .deletion:
-                return .deletion
-              case .metadata:
-                return .metadata
-              case .expanded:
-                return .expanded
-              }
-            }()
-          )
-        )
-      )
-    case .didChangeSelection(let selection):
-      onEvent?(
-        .didChangeSelection(
-          selection.map { selection in
-            DiffSelection(
-              fileIndex: selection.fileIndex,
-              start: DiffSelectionEndpoint(
-                side: {
-                  switch selection.start.side {
-                  case .old:
-                    return .old
-                  case .new:
-                    return .new
-                  case .unified:
-                    return .unified
-                  }
-                }(),
-                number: selection.start.number
-              ),
-              end: DiffSelectionEndpoint(
-                side: {
-                  switch selection.end.side {
-                  case .old:
-                    return .old
-                  case .new:
-                    return .new
-                  case .unified:
-                    return .unified
-                  }
-                }(),
-                number: selection.end.number
-              )
-            )
-          }
-        )
-      )
-    case .didFail(let code, let message):
-      onEvent?(.didFail(DiffError(code: code, message: message)))
-    }
+    onEvent?(YiTongPublicModelAdapter.makeDiffEvent(from: event))
   }
 }
 #endif

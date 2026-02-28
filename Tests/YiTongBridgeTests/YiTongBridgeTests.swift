@@ -80,7 +80,9 @@ final class YiTongBridgeTests: XCTestCase {
   func testUpdateConfigurationEnvelopeRoundTrips() throws {
     let payload = YiTongBridgeConfigurationPayload(
       diffStyle: .unified,
+      diffIndicators: .classic,
       showsLineNumbers: false,
+      showsChangeBackgrounds: false,
       wrapsLines: true,
       showsFileHeaders: false,
       inlineChangeStyle: .char,

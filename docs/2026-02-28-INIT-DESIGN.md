@@ -79,6 +79,19 @@ public enum DiffEvent: Sendable {
 - Public view names are unprefixed: `DiffView`, `DiffViewController`.
 - Public model and event types are also unprefixed when part of the main API.
 - Internal implementation types are prefixed, for example `YiTongWebViewHost`, `YiTongBridgeCodec`, and `YiTongRendererSession`.
+- Public configuration names should prefer stable Swift and Apple-platform semantics over raw upstream renderer option names.
+
+Examples:
+
+- `lineDiffType` becomes `inlineChangeStyle`
+- `disableBackground` becomes `showsChangeBackgrounds`
+- `disableLineNumbers` becomes `showsLineNumbers`
+
+Rationale:
+
+- Swift API should describe intent, not web implementation toggles.
+- Negative boolean names from the web layer are harder to read in Swift call sites.
+- YiTong must be free to change renderer internals later without forcing public Swift naming to track every upstream rename.
 
 ### Public Surface Constraints
 

@@ -17,7 +17,9 @@ final class YiTongCoreTests: XCTestCase {
       ),
       configuration: YiTongBridgeConfigurationPayload(
         diffStyle: diffStyle,
+        diffIndicators: .bars,
         showsLineNumbers: true,
+        showsChangeBackgrounds: true,
         wrapsLines: false,
         showsFileHeaders: true,
         inlineChangeStyle: .wordAlt,
@@ -159,7 +161,9 @@ final class YiTongCoreTests: XCTestCase {
 
     let updatedConfiguration = YiTongBridgeConfigurationPayload(
       diffStyle: .unified,
+      diffIndicators: .classic,
       showsLineNumbers: false,
+      showsChangeBackgrounds: false,
       wrapsLines: true,
       showsFileHeaders: false,
       inlineChangeStyle: .char,
@@ -177,7 +181,9 @@ final class YiTongCoreTests: XCTestCase {
     let initialRequest = makeRequest()
     let updatedConfiguration = YiTongBridgeConfigurationPayload(
       diffStyle: .unified,
+      diffIndicators: .classic,
       showsLineNumbers: false,
+      showsChangeBackgrounds: false,
       wrapsLines: true,
       showsFileHeaders: false,
       inlineChangeStyle: .char,

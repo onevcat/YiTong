@@ -6,6 +6,7 @@ export type IncomingMessageType = "initialize" | "renderDocument" | "updateConfi
 
 export type ResolvedAppearance = "light" | "dark";
 export type DiffStyle = "split" | "unified";
+export type DiffIndicators = "bars" | "classic" | "none";
 export type InlineChangeStyle = "wordAlt" | "word" | "char" | "none";
 export type RenderState = "loading" | "rendered" | "failed";
 export type LineSide = "old" | "new" | "unified";
@@ -30,7 +31,9 @@ export interface InitializePayload {
 
 export interface RenderConfigurationPayload {
   diffStyle: DiffStyle;
+  diffIndicators: DiffIndicators;
   showsLineNumbers: boolean;
+  showsChangeBackgrounds: boolean;
   wrapsLines: boolean;
   showsFileHeaders: boolean;
   inlineChangeStyle: InlineChangeStyle;
