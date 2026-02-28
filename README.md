@@ -43,6 +43,16 @@ make verify
 
 This always runs Swift verification. Web verification runs only when `node`, `npm`, and installed `WebRenderer` dependencies are available.
 
+### Minimal Visual Harness
+
+To manually verify that `DiffView` actually renders in a macOS window:
+
+```bash
+make run-example
+```
+
+This launches a minimal macOS example app backed by the current local package code and bundled web assets.
+
 ### Maintainer Workflow
 
 Install web dependencies:

@@ -19,5 +19,8 @@ verify-swift:
 verify-web:
     make verify-web
 
+run-example:
+    make run-example
+
 clean:
     make clean
