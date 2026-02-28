@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help bootstrap update-web-assets verify verify-swift verify-web clean
+.PHONY: help bootstrap update-web-assets verify verify-swift verify-web run-example clean
 
 help:
 	@echo "Available targets:"
@@ -9,6 +9,7 @@ help:
 	@echo "  make verify            Run Swift verification and optional web verification"
 	@echo "  make verify-swift      Run Swift verification only"
 	@echo "  make verify-web        Run WebRenderer build verification only"
+	@echo "  make run-example       Launch the minimal macOS example app"
 	@echo "  make clean             Remove build artifacts"
 
 bootstrap:
@@ -29,6 +30,9 @@ verify-swift:
 
 verify-web:
 	@cd WebRenderer && npm run build
+
+run-example:
+	@swift run YiTongExample
 
 clean:
 	@rm -rf .build

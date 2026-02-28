@@ -17,7 +17,24 @@ for (const name of readdirSync(resourcesDirectory)) {
   rmSync(path.join(resourcesDirectory, name), { force: true, recursive: true });
 }
 
-for (const name of ["index.html", "renderer.js", "renderer.css"]) {
+const indexHTML = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YiTong Web Renderer</title>
+    <link rel="stylesheet" href="./renderer.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
+`;
+
+writeFileSync(path.join(resourcesDirectory, "index.html"), indexHTML);
+
+for (const name of ["renderer.js", "renderer.css"]) {
   cpSync(path.join(distDirectory, name), path.join(resourcesDirectory, name));
 }
 
