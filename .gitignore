@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Xcode
+DerivedData/
+build/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcuserdatad/
+*.xcuserstate
+
+# Test and coverage artifacts
+*.profdata
+*.xccovarchive
+*.xcresult
+
+# WebRenderer / Node
+WebRenderer/node_modules/
+WebRenderer/dist/
+WebRenderer/.vite/
+WebRenderer/.cache/
+
+# Editors
+.idea/
+.vscode/

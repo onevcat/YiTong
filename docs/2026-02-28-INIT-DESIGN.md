@@ -558,10 +558,38 @@ These are intentionally deferred until after the initial implementation proves o
 
 - Worker mode enablement
 - Public file navigation UI
+- Full file-pair input model for complete-file diffing
 - Programmatic native-to-web selection synchronization
 - Public annotation APIs
 - Virtualization or large-patch special modes
 - AppKit-specific wrapper details beyond sharing `DiffViewController`
+- Review-style context expansion controls and workflows
+
+## Post-v1 Direction
+
+The expected next expansion after v1 is not a larger `DiffView` surface by default, but a higher-level document model that can support app-style navigation and complete-file comparisons.
+
+The primary post-v1 direction is a file-pairing model:
+
+- compare complete `oldFile` / `newFile` contents for a file, not only patch hunks
+- support multi-file documents composed from file pairs
+- expose file summaries suitable for a left-side file navigator
+- allow the host app to switch the active file while reusing the same diff renderer core
+
+This future direction is specifically intended to support native macOS app experiences such as:
+
+- left-side changed file navigation
+- right-side diff presentation
+- later review-style operations such as expanding context upward or downward
+
+Important boundary:
+
+- v1 stays patch-first
+- v1 does not implement a public file navigator
+- v1 does not implement complete-file file-pair APIs
+- v1 does not implement review workflows
+
+If this direction is implemented later, it should be introduced as an additive document model rather than by overloading the initial patch-first API.
 
 ## Immediate Implementation Constraints
 
