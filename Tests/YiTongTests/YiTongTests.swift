@@ -22,6 +22,7 @@ final class YiTongTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
+  @MainActor
   func testDiffViewControllerCanBeConstructed() {
     let controller = DiffViewController(document: DiffDocument(patch: "diff --git a/a.txt b/a.txt"))
 

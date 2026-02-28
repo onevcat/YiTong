@@ -1,12 +1,13 @@
 import "./styles.css";
+import { installMessageReceiver, postReady } from "./bridge";
+import { handleIncomingMessage, handleMessageError } from "./renderer";
 
-const root = document.querySelector<HTMLDivElement>("#app");
+installMessageReceiver(async (envelope) => {
+  try {
+    await handleIncomingMessage(envelope);
+  } catch (error) {
+    handleMessageError(error);
+  }
+});
 
-if (root != null) {
-  root.innerHTML = `
-    <div class="shell">
-      <h1>YiTong</h1>
-      <p>Web renderer placeholder bundle is loaded.</p>
-    </div>
-  `;
-}
+postReady();
