@@ -13,6 +13,10 @@ let package = Package(
       name: "YiTong",
       targets: ["YiTong"]
     ),
+    .executable(
+      name: "YiTongExample",
+      targets: ["YiTongExample"]
+    ),
   ],
   targets: [
     .target(
@@ -31,6 +35,11 @@ let package = Package(
       resources: [
         .process("Resources"),
       ]
+    ),
+    .executableTarget(
+      name: "YiTongExample",
+      dependencies: ["YiTong"],
+      path: "Examples/YiTongExample"
     ),
     .testTarget(
       name: "YiTongTests",
