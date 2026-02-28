@@ -1,6 +1,10 @@
 :root {
   color-scheme: light dark;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --page-background-light: linear-gradient(180deg, #f5f4ee 0%, #ece6d8 100%);
+  --page-background-dark: linear-gradient(180deg, #141414 0%, #1f1f1f 100%);
+  --page-text-light: #1d1d1f;
+  --page-text-dark: #f5f5f7;
 }
 
 html,
@@ -11,8 +15,20 @@ body,
 }
 
 body {
-  background: linear-gradient(180deg, #f5f4ee 0%, #ece6d8 100%);
-  color: #1d1d1f;
+  background: var(--page-background-light);
+  color: var(--page-text-light);
+}
+
+:root[data-appearance="dark"] body {
+  background: var(--page-background-dark);
+  color: var(--page-text-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-appearance="light"]) body {
+    background: var(--page-background-dark);
+    color: var(--page-text-dark);
+  }
 }
 
 #app {

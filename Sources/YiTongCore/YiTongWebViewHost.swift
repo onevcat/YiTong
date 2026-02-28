@@ -85,6 +85,13 @@ public final class YiTongWebViewHost: NSObject {
       userContentController.add(self, name: Constants.diagnosticMessageHandlerName)
     }
     webView.navigationDelegate = self
+#if os(macOS)
+    webView.setValue(false, forKey: "drawsBackground")
+#else
+    webView.isOpaque = false
+    webView.backgroundColor = .clear
+    webView.scrollView.backgroundColor = .clear
+#endif
   }
 
   deinit {

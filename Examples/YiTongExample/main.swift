@@ -37,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 struct ExampleContentView: View {
   @State private var latestEvent: String = "Waiting for renderer..."
   @State private var eventLog: [String] = []
+  @State private var appearance: DiffAppearance = .automatic
   @State private var style: DiffStyle = .split
   @State private var indicators: DiffIndicators = .bars
   @State private var showsLineNumbers = true
@@ -65,6 +66,13 @@ struct ExampleContentView: View {
       }
     }
     .frame(minWidth: 960, minHeight: 640)
+    .preferredColorScheme(preferredColorScheme)
+    .onAppear {
+      applyHostAppearance(appearance)
+    }
+    .onChange(of: appearance) { newValue in
+      applyHostAppearance(newValue)
+    }
   }
 
   private var header: some View {
@@ -88,6 +96,17 @@ struct ExampleContentView: View {
   private var controlPanel: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
+        GroupBox("Appearance") {
+          VStack(alignment: .leading, spacing: 12) {
+            Picker("Theme", selection: $appearance) {
+              Text("System").tag(DiffAppearance.automatic)
+              Text("Light").tag(DiffAppearance.light)
+              Text("Dark").tag(DiffAppearance.dark)
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
         GroupBox("Layout") {
           VStack(alignment: .leading, spacing: 12) {
             Picker("Style", selection: $style) {
@@ -110,7 +129,7 @@ struct ExampleContentView: View {
             Toggle("Show change backgrounds", isOn: $showsChangeBackgrounds)
             Toggle("Wrap long lines", isOn: $wrapsLines)
             Toggle("Show file headers", isOn: $showsFileHeaders)
-            Toggle("Allow text selection", isOn: $allowsSelection)
+            Toggle("Allow line selection", isOn: $allowsSelection)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -151,6 +170,7 @@ struct ExampleContentView: View {
 
   private var configuration: DiffConfiguration {
     DiffConfiguration(
+      appearance: appearance,
       style: style,
       indicators: indicators,
       showsLineNumbers: showsLineNumbers,
@@ -185,7 +205,30 @@ struct ExampleContentView: View {
     eventLog = Array(([description] + eventLog).prefix(8))
   }
 
+  private var preferredColorScheme: ColorScheme? {
+    switch appearance {
+    case .automatic:
+      return nil
+    case .light:
+      return .light
+    case .dark:
+      return .dark
+    }
+  }
+
+  private func applyHostAppearance(_ appearance: DiffAppearance) {
+    switch appearance {
+    case .automatic:
+      NSApp.appearance = nil
+    case .light:
+      NSApp.appearance = NSAppearance(named: .aqua)
+    case .dark:
+      NSApp.appearance = NSAppearance(named: .darkAqua)
+    }
+  }
+
   private func resetConfiguration() {
+    appearance = .automatic
     style = .split
     indicators = .bars
     showsLineNumbers = true

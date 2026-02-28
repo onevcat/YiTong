@@ -46,6 +46,10 @@ function clearInstances() {
   instances.length = 0;
 }
 
+function applyAppearance(appearance: "light" | "dark") {
+  document.documentElement.dataset.appearance = appearance;
+}
+
 function mapLineSide(side: "additions" | "deletions"): LineSide {
   switch (side) {
     case "deletions":
@@ -123,6 +127,7 @@ function renderDocument(payload: RenderDocumentPayload) {
   state.document = payload.document;
   state.documentIdentifier = payload.document.identifier;
   state.configuration = payload.configuration;
+  applyAppearance(payload.configuration.resolvedAppearance);
 
   postRenderStateChanged({
     state: "loading",
@@ -175,6 +180,7 @@ export async function handleIncomingMessage(envelope: Envelope<IncomingMessageTy
   switch (envelope.type) {
     case "initialize":
       state.initializePayload = envelope.payload as InitializePayload;
+      applyAppearance(state.initializePayload.resolvedAppearance);
       return;
     case "renderDocument":
       renderDocument(envelope.payload as RenderDocumentPayload);
