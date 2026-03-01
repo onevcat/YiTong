@@ -104,6 +104,48 @@ final class YiTongBridgeTests: XCTestCase {
     XCTAssertEqual(decoded, message)
   }
 
+  func testRenderDocumentEnvelopeRoundTripsFileBasedDocument() throws {
+    let payload = YiTongRenderDocumentPayload(
+      document: YiTongBridgeDocumentPayload(
+        identifier: "document-files",
+        title: "Files",
+        patch: "diff --git a/a.txt b/a.txt",
+        files: [
+          YiTongBridgeFilePayload(
+            oldPath: "a.txt",
+            newPath: "a.txt",
+            oldContents: "before\n",
+            newContents: "after\n"
+          ),
+        ]
+      ),
+      configuration: YiTongBridgeConfigurationPayload(
+        diffStyle: .split,
+        diffIndicators: .bars,
+        showsLineNumbers: true,
+        showsChangeBackgrounds: true,
+        wrapsLines: false,
+        showsFileHeaders: true,
+        inlineChangeStyle: .wordAlt,
+        allowsSelection: true,
+        resolvedAppearance: .dark
+      )
+    )
+    let message = YiTongBridgeOutgoingEnvelope(
+      id: "msg-files",
+      type: .renderDocument,
+      payload: payload
+    )
+
+    let data = try YiTongBridgeCodec.encode(message)
+    let decoded = try YiTongBridgeCodec.decode(
+      YiTongBridgeOutgoingEnvelope<YiTongRenderDocumentPayload>.self,
+      from: data
+    )
+
+    XCTAssertEqual(decoded, message)
+  }
+
   func testTeardownEnvelopeRoundTrips() throws {
     let message = YiTongBridgeOutgoingEnvelope(
       id: "msg-3",

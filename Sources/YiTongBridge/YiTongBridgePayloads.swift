@@ -157,15 +157,41 @@ public struct YiTongInitializePayload: Codable, Equatable, Sendable {
   }
 }
 
+public struct YiTongBridgeFilePayload: Codable, Equatable, Sendable {
+  public var oldPath: String?
+  public var newPath: String?
+  public var oldContents: String
+  public var newContents: String
+
+  public init(
+    oldPath: String? = nil,
+    newPath: String? = nil,
+    oldContents: String,
+    newContents: String
+  ) {
+    self.oldPath = oldPath
+    self.newPath = newPath
+    self.oldContents = oldContents
+    self.newContents = newContents
+  }
+}
+
 public struct YiTongBridgeDocumentPayload: Codable, Equatable, Sendable {
   public var identifier: String
   public var title: String?
-  public var patch: String
+  public var patch: String?
+  public var files: [YiTongBridgeFilePayload]?
 
-  public init(identifier: String, title: String?, patch: String) {
+  public init(
+    identifier: String,
+    title: String?,
+    patch: String? = nil,
+    files: [YiTongBridgeFilePayload]? = nil
+  ) {
     self.identifier = identifier
     self.title = title
     self.patch = patch
+    self.files = files
   }
 }
 

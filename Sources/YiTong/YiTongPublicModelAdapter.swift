@@ -13,7 +13,15 @@ enum YiTongPublicModelAdapter {
       document: YiTongBridgeDocumentPayload(
         identifier: documentIdentifier,
         title: document.title,
-        patch: document.patch
+        patch: document.patch,
+        files: document.files?.map {
+          YiTongBridgeFilePayload(
+            oldPath: $0.oldPath,
+            newPath: $0.newPath,
+            oldContents: $0.oldContents,
+            newContents: $0.newContents
+          )
+        }
       ),
       configuration: makeBridgeConfiguration(
         from: configuration,

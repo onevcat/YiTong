@@ -10,6 +10,7 @@
 
 YiTong provides `DiffView` and `DiffViewController` for rendering diffs on Apple platforms.
 It is an Apple-platform wrapper around [diffs.com](https://diffs.com/), rendered through `WKWebView`.
+It supports both unified patch input and file-based old/new contents input.
 
 YiTong = 异同
 > 析其所异，合其所同。
@@ -104,6 +105,24 @@ DiffView(
       print(error.code, error.message)
     }
   }
+)
+```
+
+### File-based Input
+
+```swift
+import YiTong
+
+let document = DiffDocument(
+  files: [
+    DiffFile(
+      oldPath: "Sources/Counter.swift",
+      newPath: "Sources/Counter.swift",
+      oldContents: "struct Counter { var value: Int }\n",
+      newContents: "struct Counter { private(set) var value: Int }\n"
+    ),
+  ],
+  title: "Counter.swift"
 )
 ```
 

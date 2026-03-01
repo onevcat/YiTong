@@ -1,4 +1,4 @@
-import { FileDiff, parsePatchFiles } from "@pierre/diffs";
+import { FileDiff } from "@pierre/diffs";
 import { postLineActivated, postRenderStateChanged, postSelectionChanged } from "./bridge";
 import type {
   Envelope,
@@ -12,6 +12,7 @@ import type {
   SelectionChangedPayload,
   SelectionPayload,
 } from "./protocol";
+import { buildRenderedFiles } from "./renderDocumentModel";
 import { toDiffOptions } from "./theme";
 
 interface RendererState {
@@ -122,8 +123,7 @@ function buildSelectionChangedPayload(
 
 function renderDocument(payload: RenderDocumentPayload) {
   const root = getAppRoot();
-  const parsedPatches = parsePatchFiles(payload.document.patch);
-  const files = parsedPatches.flatMap((patch) => patch.files);
+  const renderedFiles = buildRenderedFiles(payload.document);
   state.document = payload.document;
   state.documentIdentifier = payload.document.identifier;
   state.configuration = payload.configuration;
@@ -137,19 +137,15 @@ function renderDocument(payload: RenderDocumentPayload) {
   clearInstances();
   root.innerHTML = "";
 
-  if (files.length === 0) {
-    throw new Error("No file diffs were parsed from the provided patch");
-  }
-
-  for (const [fileIndex, fileDiff] of files.entries()) {
+  for (const [fileIndex, renderedFile] of renderedFiles.entries()) {
     const section = document.createElement("section");
     section.className = "diff-file";
     root.appendChild(section);
 
     const context: RenderedFileContext = {
       fileIndex,
-      oldPath: fileDiff.prevName,
-      newPath: fileDiff.name,
+      oldPath: renderedFile.oldPath,
+      newPath: renderedFile.newPath,
     };
     const instance = new FileDiff({
       ...toDiffOptions(payload.configuration),
@@ -161,7 +157,7 @@ function renderDocument(payload: RenderDocumentPayload) {
       },
     });
     instance.render({
-      fileDiff,
+      fileDiff: renderedFile.fileDiff,
       containerWrapper: section,
     });
     instances.push(instance);
@@ -171,7 +167,7 @@ function renderDocument(payload: RenderDocumentPayload) {
     state: "rendered",
     documentIdentifier: payload.document.identifier,
     summary: {
-      fileCount: files.length,
+      fileCount: renderedFiles.length,
     },
   });
 }

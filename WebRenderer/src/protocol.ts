@@ -45,7 +45,13 @@ export interface RenderDocumentPayload {
   document: {
     identifier: string;
     title?: string;
-    patch: string;
+    patch?: string;
+    files?: Array<{
+      oldPath?: string;
+      newPath?: string;
+      oldContents: string;
+      newContents: string;
+    }>;
   };
   configuration: RenderConfigurationPayload;
 }

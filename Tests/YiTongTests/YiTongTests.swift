@@ -86,6 +86,43 @@ final class YiTongTests: XCTestCase {
     XCTAssertEqual(request.configuration.resolvedAppearance, .light)
   }
 
+  func testFileBasedRenderRequestBuildsDocumentPayload() {
+    let document = DiffDocument(
+      files: [
+        DiffFile(
+          oldPath: "Sources/Old.swift",
+          newPath: "Sources/New.swift",
+          oldContents: "let value = 1\n",
+          newContents: "let value = 2\n"
+        ),
+      ],
+      title: "Example",
+      fallbackPatch: "diff --git a/Sources/Old.swift b/Sources/New.swift"
+    )
+
+    let request = YiTongPublicModelAdapter.makeRenderRequest(
+      documentIdentifier: "document-files",
+      document: document,
+      configuration: .default,
+      resolvedAppearance: .dark
+    )
+
+    XCTAssertEqual(request.document.identifier, "document-files")
+    XCTAssertEqual(request.document.title, "Example")
+    XCTAssertEqual(request.document.patch, "diff --git a/Sources/Old.swift b/Sources/New.swift")
+    XCTAssertEqual(
+      request.document.files,
+      [
+        YiTongBridgeFilePayload(
+          oldPath: "Sources/Old.swift",
+          newPath: "Sources/New.swift",
+          oldContents: "let value = 1\n",
+          newContents: "let value = 2\n"
+        ),
+      ]
+    )
+  }
+
   func testHostLineActivatedMapsToPublicDiffEvent() {
     let event = YiTongPublicModelAdapter.makeDiffEvent(
       from: .didActivateLine(
@@ -149,6 +186,24 @@ final class YiTongTests: XCTestCase {
   @MainActor
   func testDiffViewControllerCanBeConstructed() {
     let controller = DiffViewController(document: DiffDocument(patch: "diff --git a/a.txt b/a.txt"))
+
+    XCTAssertNotNil(controller)
+  }
+
+  @MainActor
+  func testDiffViewControllerCanBeConstructedWithFileBasedDocument() {
+    let controller = DiffViewController(
+      document: DiffDocument(
+        files: [
+          DiffFile(
+            oldPath: "a.txt",
+            newPath: "a.txt",
+            oldContents: "before\n",
+            newContents: "after\n"
+          ),
+        ]
+      )
+    )
 
     XCTAssertNotNil(controller)
   }

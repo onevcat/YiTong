@@ -15,7 +15,7 @@
 - `YiTongDiffView` for SwiftUI.
 - `YiTongDiffViewController` for UIKit/AppKit.
 - One internal renderer core that owns `WKWebView`, asset loading, message bridging, and lifecycle.
-- A data model centered on `patch` input first, with room for richer file-based APIs later.
+- A data model that supports both patch input and file-based old/new contents, while keeping patch fallback available for large payloads.
 
 **Non-Goals for v1:**
 - Re-implementing `diffs.com` in Swift.
@@ -102,7 +102,7 @@ public struct YiTongDiffView: View {
 
 **Mitigations:**
 - Keep the bridge payload small and versioned.
-- Start with patch-only input to limit API surface.
+- Keep the public API small even as document input expands beyond patch-only rendering.
 - Treat asset updates as an explicit maintenance task, not an implicit dependency bump.
 - Design public types around user intent, not renderer internals.
 
