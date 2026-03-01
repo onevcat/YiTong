@@ -5,6 +5,7 @@
 </p>
 
 YiTong provides `DiffView` and `DiffViewController` for rendering diffs on Apple platforms.
+It is a native Apple-platform wrapper around [diffs.com](https://diffs.com/).
 
 YiTong = 异同
 > 析其所异，合其所同。
