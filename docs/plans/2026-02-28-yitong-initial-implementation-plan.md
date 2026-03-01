@@ -140,3 +140,9 @@
 - Do not start worker mode, SSR, or public annotation APIs during this plan.
 - Treat milestone docs as required completion artifacts, not optional notes.
 - When milestone scope changes, update this plan before continuing.
+
+---
+
+## Post-M4 / Follow-ups
+
+- File-based diff (old/new contents) + expand unchanged: see `docs/plans/2026-03-01-yitong-file-based-diff-plan.md`.
