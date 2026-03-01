@@ -44,23 +44,53 @@ targets: [
 
 ## Common Usage
 
-### SwiftUI
+### Create a DiffDocument
+
+#### Files
+
+```swift
+import YiTong
+
+let document = DiffDocument(
+  files: [
+    DiffFile(
+      oldPath: "Sources/Counter.swift",
+      newPath: "Sources/Counter.swift",
+      oldContents: "struct Counter { var value: Int }\n",
+      newContents: "struct Counter { private(set) var value: Int }\n"
+    ),
+  ],
+  title: "Counter.swift"
+)
+```
+
+#### Patch
+
+```swift
+import YiTong
+
+let document = DiffDocument(
+  patch: """
+  diff --git a/Example.swift b/Example.swift
+  --- a/Example.swift
+  +++ b/Example.swift
+  @@ -1,3 +1,3 @@
+  -let value = 1
+  +let value = 2
+  """
+)
+```
+
+### Render the Diff
+
+#### SwiftUI
 
 ```swift
 import SwiftUI
 import YiTong
 
 struct ContentView: View {
-  let document = DiffDocument(
-    patch: """
-    diff --git a/Example.swift b/Example.swift
-    --- a/Example.swift
-    +++ b/Example.swift
-    @@ -1,3 +1,3 @@
-    -let value = 1
-    +let value = 2
-    """
-  )
+  let document: DiffDocument
 
   var body: some View {
     DiffView(
@@ -75,18 +105,18 @@ struct ContentView: View {
 }
 ```
 
-### UIKit / AppKit
+#### UIKit / AppKit
 
 ```swift
 import YiTong
 
 let controller = DiffViewController(
-  document: DiffDocument(patch: patchString),
+  document: document,
   configuration: DiffConfiguration(style: .unified)
 )
 ```
 
-### Handling Events
+### Handle Events
 
 ```swift
 DiffView(
@@ -105,24 +135,6 @@ DiffView(
       print(error.code, error.message)
     }
   }
-)
-```
-
-### File-based Input
-
-```swift
-import YiTong
-
-let document = DiffDocument(
-  files: [
-    DiffFile(
-      oldPath: "Sources/Counter.swift",
-      newPath: "Sources/Counter.swift",
-      oldContents: "struct Counter { var value: Int }\n",
-      newContents: "struct Counter { private(set) var value: Int }\n"
-    ),
-  ],
-  title: "Counter.swift"
 )
 ```
 
