@@ -123,9 +123,13 @@ public final class YiTongWebViewHost: NSObject {
   }
 
   public func load(request: YiTongRenderRequest) {
+    guard let plannedRequest = plan(request) else {
+      return
+    }
+
     coordinator.pageDidStartLoading()
-    currentRequest = request
-    _ = coordinator.setRenderRequest(request)
+    currentRequest = plannedRequest
+    _ = coordinator.setRenderRequest(plannedRequest)
 
     guard
       let fileURL = YiTongWebAssets.resourceURL(for: "index", withExtension: "html")
@@ -139,8 +143,12 @@ public final class YiTongWebViewHost: NSObject {
   }
 
   public func render(request: YiTongRenderRequest) {
-    currentRequest = request
-    let commands = coordinator.setRenderRequest(request)
+    guard let plannedRequest = plan(request) else {
+      return
+    }
+
+    currentRequest = plannedRequest
+    let commands = coordinator.setRenderRequest(plannedRequest)
     for command in commands {
       send(command)
     }
@@ -290,6 +298,19 @@ public final class YiTongWebViewHost: NSObject {
       return
     }
     print("[YiTongWebViewHost] \(message)")
+  }
+
+  private func plan(_ request: YiTongRenderRequest) -> YiTongRenderRequest? {
+    switch YiTongRenderRequestPlanner.plan(request) {
+    case .success(let plannedRequest, let diagnostic):
+      if let diagnostic {
+        log(diagnostic)
+      }
+      return plannedRequest
+    case .failure(let failure):
+      eventHandler?(.didFail(code: failure.code, message: failure.message))
+      return nil
+    }
   }
 
   private func logPageEnvironment() {

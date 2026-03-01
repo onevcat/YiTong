@@ -29,6 +29,32 @@ final class YiTongCoreTests: XCTestCase {
     )
   }
 
+  private func makeFileRequest(
+    identifier: String = "document-files",
+    patch: String? = "diff --git a/a.txt b/a.txt",
+    files: [YiTongBridgeFilePayload]
+  ) -> YiTongRenderRequest {
+    YiTongRenderRequest(
+      document: YiTongBridgeDocumentPayload(
+        identifier: identifier,
+        title: "Files",
+        patch: patch,
+        files: files
+      ),
+      configuration: YiTongBridgeConfigurationPayload(
+        diffStyle: .split,
+        diffIndicators: .bars,
+        showsLineNumbers: true,
+        showsChangeBackgrounds: true,
+        wrapsLines: false,
+        showsFileHeaders: true,
+        inlineChangeStyle: .wordAlt,
+        allowsSelection: true,
+        resolvedAppearance: .dark
+      )
+    )
+  }
+
   func testDiagnosticsAreDisabledByDefault() {
     XCTAssertFalse(YiTongDiagnostics.isEnabled(environment: [:]))
   }
@@ -99,6 +125,77 @@ final class YiTongCoreTests: XCTestCase {
     XCTAssertEqual(result.1, .didFinishInitialLoad)
     XCTAssertEqual(result.0.count, 2)
     XCTAssertEqual(coordinator.session.state, .renderingDocument)
+  }
+
+  func testRenderRequestPlannerKeepsFileModeWithinLimits() {
+    let request = makeFileRequest(
+      files: [
+        YiTongBridgeFilePayload(
+          oldPath: "Sources/Counter.swift",
+          newPath: "Sources/Counter.swift",
+          oldContents: String(repeating: "a", count: 128),
+          newContents: String(repeating: "b", count: 128)
+        ),
+      ]
+    )
+
+    let result = YiTongRenderRequestPlanner.plan(request)
+
+    switch result {
+    case .success(let plannedRequest, let diagnostic):
+      XCTAssertNil(diagnostic)
+      XCTAssertEqual(plannedRequest.document.files?.count, 1)
+      XCTAssertEqual(plannedRequest.document.patch, request.document.patch)
+    case .failure(let error):
+      XCTFail("Expected success, got failure: \(error)")
+    }
+  }
+
+  func testRenderRequestPlannerFallsBackToPatchWhenSingleFileExceedsLimit() {
+    let request = makeFileRequest(
+      files: [
+        YiTongBridgeFilePayload(
+          oldPath: "Sources/Large.swift",
+          newPath: "Sources/Large.swift",
+          oldContents: String(repeating: "a", count: 2_100_000),
+          newContents: String(repeating: "b", count: 2_100_000)
+        ),
+      ]
+    )
+
+    let result = YiTongRenderRequestPlanner.plan(request)
+
+    switch result {
+    case .success(let plannedRequest, let diagnostic):
+      XCTAssertNotNil(diagnostic)
+      XCTAssertNil(plannedRequest.document.files)
+      XCTAssertEqual(plannedRequest.document.patch, request.document.patch)
+    case .failure(let error):
+      XCTFail("Expected fallback, got failure: \(error)")
+    }
+  }
+
+  func testRenderRequestPlannerFailsWhenTotalSizeExceedsLimitWithoutPatchFallback() {
+    let request = makeFileRequest(
+      patch: nil,
+      files: [
+        YiTongBridgeFilePayload(
+          oldPath: "Sources/A.swift",
+          newPath: "Sources/A.swift",
+          oldContents: String(repeating: "a", count: 5_500_000),
+          newContents: String(repeating: "b", count: 5_500_000)
+        ),
+      ]
+    )
+
+    let result = YiTongRenderRequestPlanner.plan(request)
+
+    switch result {
+    case .success(let plannedRequest, _):
+      XCTFail("Expected failure, got success: \(plannedRequest)")
+    case .failure(let error):
+      XCTAssertEqual(error.code, "document_too_large")
+    }
   }
 
   func testDidFinishNavigationDoesNotRegressReadyState() throws {
