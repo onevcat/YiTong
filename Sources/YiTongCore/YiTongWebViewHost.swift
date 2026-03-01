@@ -7,6 +7,19 @@ import YiTongWebAssets
 public final class YiTongWebViewHost: NSObject {
   public typealias EventHandler = @Sendable (YiTongHostEvent) -> Void
 
+  @MainActor
+  private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var delegate: (any WKScriptMessageHandler)?
+
+    init(delegate: (any WKScriptMessageHandler)? = nil) {
+      self.delegate = delegate
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+      delegate?.userContentController(userContentController, didReceive: message)
+    }
+  }
+
   private enum Constants {
     static let scriptMessageHandlerName = "yitongBridge"
     static let diagnosticMessageHandlerName = "yitongDiagnostic"
@@ -55,6 +68,8 @@ public final class YiTongWebViewHost: NSObject {
   }
 
   public let webView: WKWebView
+  private let bridgeHandlerProxy: WeakScriptMessageHandler
+  private let diagnosticHandlerProxy: WeakScriptMessageHandler?
   private let platform: YiTongBridgePlatform
   private let diagnosticsEnabled: Bool
   private var coordinator = YiTongRendererCoordinator()
@@ -79,10 +94,20 @@ public final class YiTongWebViewHost: NSObject {
     }
     configuration.userContentController = userContentController
     self.webView = WKWebView(frame: .zero, configuration: configuration)
+
+    let bridgeHandlerProxy = WeakScriptMessageHandler()
+    let diagnosticHandlerProxy = self.diagnosticsEnabled ? WeakScriptMessageHandler() : nil
+    self.bridgeHandlerProxy = bridgeHandlerProxy
+    self.diagnosticHandlerProxy = diagnosticHandlerProxy
+
     super.init()
-    userContentController.add(self, name: Constants.scriptMessageHandlerName)
-    if self.diagnosticsEnabled {
-      userContentController.add(self, name: Constants.diagnosticMessageHandlerName)
+
+    bridgeHandlerProxy.delegate = self
+    userContentController.add(bridgeHandlerProxy, name: Constants.scriptMessageHandlerName)
+
+    if diagnosticsEnabled, let diagnosticHandlerProxy {
+      diagnosticHandlerProxy.delegate = self
+      userContentController.add(diagnosticHandlerProxy, name: Constants.diagnosticMessageHandlerName)
     }
     webView.navigationDelegate = self
 #if os(macOS)
@@ -93,18 +118,6 @@ public final class YiTongWebViewHost: NSObject {
     webView.scrollView.backgroundColor = .clear
 #endif
   }
-
-  deinit {
-    let userContentController = webView.configuration.userContentController
-    let diagnosticsEnabled = diagnosticsEnabled
-    MainActor.assumeIsolated {
-      userContentController.removeScriptMessageHandler(forName: Constants.scriptMessageHandlerName)
-      if diagnosticsEnabled {
-        userContentController.removeScriptMessageHandler(forName: Constants.diagnosticMessageHandlerName)
-      }
-    }
-  }
-
   public func setEventHandler(_ handler: EventHandler?) {
     eventHandler = handler
   }

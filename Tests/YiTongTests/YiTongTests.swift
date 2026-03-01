@@ -138,6 +138,7 @@ final class YiTongTests: XCTestCase {
     )
   }
 
+  @MainActor
   func testDiffViewCanBeConstructed() {
     let document = DiffDocument(patch: "diff --git a/a.txt b/a.txt")
     let view = DiffView(document: document)
