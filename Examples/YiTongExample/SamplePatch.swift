@@ -88,25 +88,54 @@ enum SamplePatch {
     ]
   )
 
+  private static let counterHeaderLines = [
+    "import Foundation",
+    "",
+  ]
+
+  private static let counterSeedLines = (1...36).map {
+    "private let counterSeed\($0) = \($0)"
+  }
+
+  private static let counterFooterLines = (1...24).map {
+    "private let counterFooter\($0) = \"Footer \($0)\""
+  }
+
+  private static let appViewHeaderLines = [
+    "import SwiftUI",
+    "",
+  ]
+
+  private static let appViewSeedLines = (1...28).map {
+    "private let previewTitle\($0) = \"Preview \($0)\""
+  }
+
+  private static let appViewFooterLines = (1...20).map {
+    "private let appViewFooter\($0) = \"Footer \($0)\""
+  }
+
   private static func makeCounterSource(
     valueLine: String,
     extraMethodLines: [String]
   ) -> String {
-    let lines = [
-      "import Foundation",
-      "",
-    ] + (1...36).map {
-      "private let counterSeed\($0) = \($0)"
-    } + [
+    let lines = counterHeaderLines
+      + counterSeedLines
+      + [
       "",
       "struct Counter {",
       valueLine,
-    ] + extraMethodLines + [
+      ]
+      + extraMethodLines
+      + [
       "",
       "  mutating func increment() {",
       "    value += 1",
       "  }",
       "}",
+      "",
+      ]
+      + counterFooterLines
+      + [
       "",
     ]
 
@@ -117,20 +146,23 @@ enum SamplePatch {
     stateLine: String,
     bodyLines: [String]
   ) -> String {
-    let lines = [
-      "import SwiftUI",
-      "",
-    ] + (1...28).map {
-      "private let previewTitle\($0) = \"Preview \($0)\""
-    } + [
+    let lines = appViewHeaderLines
+      + appViewSeedLines
+      + [
       "",
       "struct AppView: View {",
       stateLine,
       "",
       "  var body: some View {",
-    ] + bodyLines + [
+      ]
+      + bodyLines
+      + [
       "  }",
       "}",
+      "",
+      ]
+      + appViewFooterLines
+      + [
       "",
     ]
 
