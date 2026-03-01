@@ -30,8 +30,6 @@ export function toDiffOptions(configuration: RenderConfigurationPayload) {
     disableLineNumbers: !configuration.showsLineNumbers,
     overflow: configuration.wrapsLines ? "wrap" : "scroll",
     disableFileHeader: !configuration.showsFileHeaders,
-    expandUnchanged: true,
-    expansionLineCount: 20,
     lineDiffType: resolveLineDiffType(configuration.inlineChangeStyle),
     enableLineSelection: configuration.allowsSelection,
   } as const;
