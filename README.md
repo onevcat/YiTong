@@ -1,7 +1,11 @@
 # YiTong
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/c45e8800-0179-4e83-bf22-e10577dcb45e" alt="YiTong logo">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/59df1005-12f4-418f-9188-06d28382895e">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/16eed628-0799-4754-bde8-05889d499f2a">
+    <img src="https://github.com/user-attachments/assets/16eed628-0799-4754-bde8-05889d499f2a" alt="YiTong logo">
+  </picture>
 </p>
 
 YiTong provides `DiffView` and `DiffViewController` for rendering diffs on Apple platforms.
