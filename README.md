@@ -153,3 +153,16 @@ make update-web-assets
 ```
 
 `make run-example` launches the bundled macOS example app for manual verification.
+
+## License
+
+YiTong is licensed under the Apache License 2.0.
+
+This repository also bundles generated web assets derived from
+`@pierre/diffs` (`Apache-2.0`) for local `WKWebView` rendering.
+
+See:
+
+- [LICENSE](/Users/onevcat/Sync/github/YiTong/LICENSE)
+- [NOTICE](/Users/onevcat/Sync/github/YiTong/NOTICE)
+- [THIRD_PARTY_NOTICES.md](/Users/onevcat/Sync/github/YiTong/THIRD_PARTY_NOTICES.md)
