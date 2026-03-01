@@ -35,8 +35,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 struct ExampleContentView: View {
+  private enum ExampleTab: Hashable {
+    case patch
+    case files
+
+    var title: String {
+      switch self {
+      case .patch:
+        return "Patch"
+      case .files:
+        return "Files"
+      }
+    }
+  }
+
   @State private var latestEvent: String = "Waiting for renderer..."
   @State private var eventLog: [String] = []
+  @State private var selectedTab: ExampleTab = .patch
   @State private var appearance: DiffAppearance = .automatic
   @State private var style: DiffStyle = .split
   @State private var indicators: DiffIndicators = .bars
@@ -46,9 +61,13 @@ struct ExampleContentView: View {
   @State private var showsFileHeaders = true
   @State private var allowsSelection = true
 
-  private let document = DiffDocument(
+  private let patchDocument = DiffDocument(
     patch: SamplePatch.multiFile,
-    title: "YiTong Example"
+    title: "Patch Example"
+  )
+  private let fileDocument = DiffDocument(
+    files: SamplePatch.fileBasedMultiFile,
+    title: "Files Example"
   )
 
   var body: some View {
@@ -58,11 +77,27 @@ struct ExampleContentView: View {
       HSplitView {
         controlPanel
           .frame(minWidth: 280, idealWidth: 320, maxWidth: 360)
-        DiffView(
-          document: document,
-          configuration: configuration,
-          onEvent: handleEvent
-        )
+        TabView(selection: $selectedTab) {
+          DiffView(
+            document: patchDocument,
+            configuration: configuration,
+            onEvent: handleEvent
+          )
+          .tabItem {
+            Text(ExampleTab.patch.title)
+          }
+          .tag(ExampleTab.patch)
+
+          DiffView(
+            document: fileDocument,
+            configuration: configuration,
+            onEvent: handleEvent
+          )
+          .tabItem {
+            Text(ExampleTab.files.title)
+          }
+          .tag(ExampleTab.files)
+        }
       }
     }
     .frame(minWidth: 960, minHeight: 640)
@@ -80,7 +115,7 @@ struct ExampleContentView: View {
       VStack(alignment: .leading, spacing: 4) {
         Text("YiTong Example")
           .font(.title3.weight(.semibold))
-        Text("Renders an embedded multi-file patch through WKWebView.")
+        Text("Switch between patch-based and file-based multi-file rendering through WKWebView.")
           .font(.subheadline)
           .foregroundStyle(.secondary)
       }

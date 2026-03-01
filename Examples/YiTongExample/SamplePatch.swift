@@ -1,4 +1,5 @@
 import Foundation
+import YiTong
 
 enum SamplePatch {
   static let multiFile = """
@@ -39,4 +40,100 @@ enum SamplePatch {
      }
    }
   """
+
+  static let fileBasedMultiFile: [DiffFile] = [
+    DiffFile(
+      oldPath: "Sources/App/Counter.swift",
+      newPath: "Sources/App/Counter.swift",
+      oldContents: counterOld,
+      newContents: counterNew
+    ),
+    DiffFile(
+      oldPath: "Sources/App/AppView.swift",
+      newPath: "Sources/App/AppView.swift",
+      oldContents: appViewOld,
+      newContents: appViewNew
+    ),
+  ]
+
+  private static let counterOld = makeCounterSource(
+    valueLine: "  var value: Int",
+    extraMethodLines: []
+  )
+
+  private static let counterNew = makeCounterSource(
+    valueLine: "  private(set) var value: Int",
+    extraMethodLines: [
+      "",
+      "  mutating func reset() {",
+      "    value = 0",
+      "  }",
+    ]
+  )
+
+  private static let appViewOld = makeAppViewSource(
+    stateLine: "  @State private var count = 0",
+    bodyLines: [
+      "    Text(\"\\(count)\")",
+    ]
+  )
+
+  private static let appViewNew = makeAppViewSource(
+    stateLine: "  @State private var counter = Counter(value: 0)",
+    bodyLines: [
+      "    VStack(spacing: 12) {",
+      "      Text(\"\\(counter.value)\")",
+      "      Button(\"Reset\") { counter.reset() }",
+      "    }",
+    ]
+  )
+
+  private static func makeCounterSource(
+    valueLine: String,
+    extraMethodLines: [String]
+  ) -> String {
+    let lines = [
+      "import Foundation",
+      "",
+    ] + (1...36).map {
+      "private let counterSeed\($0) = \($0)"
+    } + [
+      "",
+      "struct Counter {",
+      valueLine,
+    ] + extraMethodLines + [
+      "",
+      "  mutating func increment() {",
+      "    value += 1",
+      "  }",
+      "}",
+      "",
+    ]
+
+    return lines.joined(separator: "\n")
+  }
+
+  private static func makeAppViewSource(
+    stateLine: String,
+    bodyLines: [String]
+  ) -> String {
+    let lines = [
+      "import SwiftUI",
+      "",
+    ] + (1...28).map {
+      "private let previewTitle\($0) = \"Preview \($0)\""
+    } + [
+      "",
+      "struct AppView: View {",
+      stateLine,
+      "",
+      "  var body: some View {",
+    ] + bodyLines + [
+      "  }",
+      "}",
+      "",
+    ]
+
+    return lines.joined(separator: "\n")
+  }
 }
