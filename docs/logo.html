@@ -6,9 +6,14 @@
   <title>YiTong Logo</title>
   <script>
     (() => {
-      const theme = new URLSearchParams(window.location.search).get("theme");
+      const params = new URLSearchParams(window.location.search);
+      const theme = params.get("theme");
+      const exportMode = params.get("export");
       if (theme === "dark" || theme === "light") {
         document.documentElement.dataset.theme = theme;
+      }
+      if (exportMode === "asset") {
+        document.documentElement.dataset.export = "asset";
       }
     })();
   </script>
@@ -93,6 +98,14 @@
       padding: 32px;
     }
 
+    :root[data-export="asset"] body {
+      min-height: auto;
+      display: block;
+      width: fit-content;
+      padding: 0;
+      background: transparent;
+    }
+
     .logo {
       width: min(920px, 100%);
       border-radius: 32px;
@@ -101,6 +114,11 @@
       backdrop-filter: blur(20px);
       box-shadow: var(--shadow);
       overflow: hidden;
+    }
+
+    :root[data-export="asset"] .logo {
+      width: 920px;
+      margin: 0;
     }
 
     .hero {
@@ -220,6 +238,10 @@
         padding: 32px 24px;
       }
 
+    }
+
+    :root[data-export="asset"] .hero {
+      grid-template-columns: minmax(260px, 340px) 1fr;
     }
   </style>
 </head>
