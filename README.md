@@ -2,9 +2,9 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/59df1005-12f4-418f-9188-06d28382895e">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/16eed628-0799-4754-bde8-05889d499f2a">
-    <img src="https://github.com/user-attachments/assets/16eed628-0799-4754-bde8-05889d499f2a" alt="YiTong logo">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/onevcat/YiTong/releases/download/0.1.0/yitong-logo-dark-0.1.0.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/onevcat/YiTong/releases/download/0.1.0/yitong-logo-light-0.1.0.png">
+    <img src="https://github.com/onevcat/YiTong/releases/download/0.1.0/yitong-logo-light-0.1.0.png" alt="YiTong logo">
   </picture>
 </p>
 
