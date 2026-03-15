@@ -149,13 +149,13 @@
       grid-template-columns: auto auto;
       column-gap: 10px;
       row-gap: 6px;
-      align-items: end;
+      align-items: center;
       justify-content: start;
       justify-items: center;
     }
 
     .title-group .latin {
-      font-size: clamp(44px, 7vw, 84px);
+      font-size: clamp(52px, 8vw, 96px);
       line-height: 0.96;
       letter-spacing: -0.03em;
       font-weight: 600;
@@ -163,7 +163,7 @@
     }
 
     .title-group .han {
-      font-size: clamp(30px, 4vw, 44px);
+      font-size: clamp(36px, 5vw, 52px);
       line-height: 1;
       font-weight: 700;
     }
@@ -172,19 +172,33 @@
       color: var(--deletion);
     }
 
+    .title-group .han.difference {
+      transform: translateX(4px);
+    }
+
     .title-group .union {
       color: var(--addition);
     }
 
-    blockquote {
-      margin: 12px 0 0;
-      padding: 18px 20px;
-      border-left: 5px solid var(--ink);
-      border-radius: 0 18px 18px 0;
-      background: var(--blockquote-background);
-      font-size: clamp(20px, 2.6vw, 32px);
+    .subtitle-group {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tagline {
+      margin: 0;
+      font-size: clamp(28px, 3.6vw, 44px);
       line-height: 1.4;
       font-weight: 600;
+    }
+
+    .translation {
+      font-size: clamp(17px, 2.4vw, 26px);
+      font-weight: 400;
+      color: var(--muted);
+      font-style: italic;
     }
 
     @media (max-width: 760px) {
@@ -206,9 +220,6 @@
         padding: 32px 24px;
       }
 
-      blockquote {
-        font-size: 22px;
-      }
     }
   </style>
 </head>
@@ -269,7 +280,10 @@
           <span class="han difference">异</span>
           <span class="han union">同</span>
         </div>
-        <blockquote>析其所异，合其所同。</blockquote>
+        <div class="subtitle-group">
+          <p class="tagline">析其所异，合其所同。</p>
+          <span class="translation">Analyze what differs, unite what is shared.</span>
+        </div>
       </div>
     </section>
   </main>
