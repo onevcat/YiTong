@@ -21,11 +21,16 @@ YiTong = 异同
 
 ## Integration
 
-Add YiTong as a Swift Package dependency:
+YiTong supports:
+
+- iOS 16+
+- macOS 13+
+
+For released builds, prefer a tagged Swift Package dependency:
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/onevcat/YiTong.git", branch: "master")
+  .package(url: "https://github.com/onevcat/YiTong.git", from: "0.1.0")
 ]
 ```
 
@@ -41,6 +46,9 @@ targets: [
   )
 ]
 ```
+
+Replace `0.1.0` with the latest tagged release.
+If you need unreleased changes during development, you can temporarily track `branch: "master"` instead.
 
 ## Common Usage
 
@@ -64,6 +72,9 @@ let document = DiffDocument(
 )
 ```
 
+If you also have the original patch text, pass it as `fallbackPatch`.
+YiTong automatically falls back to patch-based rendering when file-based input exceeds supported limits.
+
 #### Patch
 
 ```swift
@@ -80,6 +91,9 @@ let document = DiffDocument(
   """
 )
 ```
+
+Use `files` when your app already has old/new contents in memory.
+Use `patch` when you already have unified diff output, or when patch text is the more natural transport format.
 
 ### Render the Diff
 
@@ -99,6 +113,36 @@ struct ContentView: View {
         appearance: .automatic,
         style: .split,
         indicators: .bars
+      )
+    )
+  }
+}
+```
+
+#### Integrate With Your Own File List
+
+When your app already provides file navigation, render one file at a time and hide YiTong's built-in file header.
+This is the integration pattern used in `supacode`.
+
+```swift
+import SwiftUI
+import YiTong
+
+struct DiffDetailView: View {
+  let selectedFile: DiffFile
+  let selectedTitle: String
+  let selectedPatch: String?
+
+  var body: some View {
+    DiffView(
+      document: DiffDocument(
+        files: [selectedFile],
+        title: selectedTitle,
+        fallbackPatch: selectedPatch
+      ),
+      configuration: DiffConfiguration(
+        style: .split,
+        showsFileHeaders: false
       )
     )
   }
@@ -194,6 +238,6 @@ This repository also bundles generated web assets derived from
 
 See:
 
-- [LICENSE](/Users/onevcat/Sync/github/YiTong/LICENSE)
-- [NOTICE](/Users/onevcat/Sync/github/YiTong/NOTICE)
-- [THIRD_PARTY_NOTICES.md](/Users/onevcat/Sync/github/YiTong/THIRD_PARTY_NOTICES.md)
+- [LICENSE](LICENSE)
+- [NOTICE](NOTICE)
+- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)

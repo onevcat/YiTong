@@ -1,0 +1,4 @@
+interface:
+  display_name: "YiTong Release"
+  short_description: "Prepare versions, changelog, tags, and GitHub releases for YiTong"
+  default_prompt: "Use the YiTong release skill to inspect commits since the previous tag, choose the next version, maintain CHANGELOG.md, verify the release, create and push the tag, and publish the GitHub release with gh."
