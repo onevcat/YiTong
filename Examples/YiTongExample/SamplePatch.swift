@@ -56,6 +56,15 @@ enum SamplePatch {
     ),
   ]
 
+  static let largeFile: [DiffFile] = [
+    DiffFile(
+      oldPath: "Sources/App/LargeStrings.swift",
+      newPath: "Sources/App/LargeStrings.swift",
+      oldContents: makeLargeSource(prefix: "old", lineCount: 6_000, changeInterval: 0),
+      newContents: makeLargeSource(prefix: "new", lineCount: 6_000, changeInterval: 7)
+    ),
+  ]
+
   private static let counterOld = makeCounterSource(
     valueLine: "  var value: Int",
     extraMethodLines: []
@@ -167,5 +176,16 @@ enum SamplePatch {
     ]
 
     return lines.joined(separator: "\n")
+  }
+
+  private static func makeLargeSource(prefix: String, lineCount: Int, changeInterval: Int) -> String {
+    (1...lineCount)
+      .map { line in
+        if changeInterval > 0, line.isMultiple(of: changeInterval) {
+          return "static let \(prefix)LocalizedString\(line) = \"changed value \(line)\""
+        }
+        return "static let \(prefix)LocalizedString\(line) = \"value \(line)\""
+      }
+      .joined(separator: "\n")
   }
 }

@@ -224,7 +224,7 @@ final class YiTongCoreTests: XCTestCase {
       )
     )
 
-    XCTAssertEqual(event, .didRender(fileCount: 3))
+    XCTAssertEqual(event, .didRender(fileCount: 3, documentIdentifier: "document-1"))
     XCTAssertEqual(coordinator.session.state, .rendered)
   }
 

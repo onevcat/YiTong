@@ -121,7 +121,10 @@ public struct YiTongRendererCoordinator: Equatable, Sendable {
       return nil
     case .rendered:
       session.state = .rendered
-      return .didRender(fileCount: payload.summary?.fileCount ?? 0)
+      return .didRender(
+        fileCount: payload.summary?.fileCount ?? 0,
+        documentIdentifier: payload.documentIdentifier
+      )
     case .failed:
       session.state = .failed
       return .didFail(

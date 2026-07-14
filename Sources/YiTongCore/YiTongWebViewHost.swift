@@ -198,7 +198,11 @@ public final class YiTongWebViewHost: NSObject {
         YiTongBridgeIncomingEnvelope<YiTongRenderStateChangedPayload>.self,
         from: data
       )
-      log("Received renderStateChanged(state: \(envelope.payload.state.rawValue))")
+      let payloadDocumentID = envelope.payload.documentIdentifier.map { String($0.prefix(8)) } ?? "nil"
+      let currentDocumentID = currentRequest.map { String($0.document.identifier.prefix(8)) } ?? "nil"
+      log(
+        "Received renderStateChanged(state: \(envelope.payload.state.rawValue), payloadDocumentID: \(payloadDocumentID), currentDocumentID: \(currentDocumentID))"
+      )
       if let event = coordinator.handleRenderStateChanged(payload: envelope.payload) {
         eventHandler?(event)
       }

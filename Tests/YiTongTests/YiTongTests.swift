@@ -219,4 +219,97 @@ final class YiTongTests: XCTestCase {
 
     XCTAssertNotNil(controller)
   }
+
+  @MainActor
+  func testEventRouterKeepsOldHandlerUntilPendingDocumentRenders() {
+    let click = DiffEvent.didClickLine(
+      DiffLineReference(fileIndex: 0, side: .new, number: 12, kind: .addition)
+    )
+    let rendered = DiffEvent.didRender(DiffRenderSummary(fileCount: 1))
+    var oldEvents: [DiffEvent] = []
+    var newEvents: [DiffEvent] = []
+    let router = DiffViewControllerEventRouter(onEvent: { event in
+      oldEvents.append(event)
+    })
+
+    router.prepareUpdate(documentChanged: true, documentIdentifier: "document-b") { event in
+      newEvents.append(event)
+    }
+    router.handle(click)
+    router.handle(rendered, renderedDocumentIdentifier: "document-b")
+    router.handle(.didChangeSelection(nil))
+
+    XCTAssertEqual(oldEvents, [click])
+    XCTAssertEqual(newEvents, [rendered, .didChangeSelection(nil)])
+  }
+
+  @MainActor
+  func testEventRouterDeliversPendingFailureWithoutPromotingInteractions() {
+    let failure = DiffEvent.didFail(DiffError(code: "render-failed", message: "Unable to render"))
+    let oldRender = DiffEvent.didRender(DiffRenderSummary(fileCount: 1))
+    let click = DiffEvent.didClickLine(
+      DiffLineReference(fileIndex: 0, side: .old, number: 4, kind: .deletion)
+    )
+    var oldEvents: [DiffEvent] = []
+    var newEvents: [DiffEvent] = []
+    let router = DiffViewControllerEventRouter(onEvent: { event in
+      oldEvents.append(event)
+    })
+
+    router.prepareUpdate(documentChanged: true, documentIdentifier: "document-b") { event in
+      newEvents.append(event)
+    }
+    router.handle(failure)
+    router.prepareUpdate(documentChanged: false, documentIdentifier: "document-b") { event in
+      newEvents.append(event)
+    }
+    router.handle(oldRender, renderedDocumentIdentifier: "document-a")
+    router.handle(click)
+    router.handle(.didFinishInitialLoad)
+
+    XCTAssertEqual(oldEvents, [oldRender, click, .didFinishInitialLoad])
+    XCTAssertEqual(newEvents, [failure])
+  }
+
+  @MainActor
+  func testEventRouterPromotesFailedHandoffWhenMatchingDocumentLaterRenders() {
+    let failure = DiffEvent.didFail(DiffError(code: "render-failed", message: "Unable to render"))
+    let rendered = DiffEvent.didRender(DiffRenderSummary(fileCount: 1))
+    let click = DiffEvent.didClickLine(
+      DiffLineReference(fileIndex: 0, side: .new, number: 8, kind: .addition)
+    )
+    var oldEvents: [DiffEvent] = []
+    var newEvents: [DiffEvent] = []
+    let router = DiffViewControllerEventRouter(onEvent: { event in
+      oldEvents.append(event)
+    })
+
+    router.prepareUpdate(documentChanged: true, documentIdentifier: "document-b") { event in
+      newEvents.append(event)
+    }
+    router.handle(failure)
+    router.handle(rendered, renderedDocumentIdentifier: "document-b")
+    router.handle(click)
+
+    XCTAssertEqual(oldEvents, [])
+    XCTAssertEqual(newEvents, [failure, rendered, click])
+  }
+
+  @MainActor
+  func testEventRouterCanPromoteNilHandlerAfterPendingDocumentRenders() {
+    let click = DiffEvent.didClickLine(
+      DiffLineReference(fileIndex: 0, side: .unified, number: 7, kind: .context)
+    )
+    var oldEvents: [DiffEvent] = []
+    let router = DiffViewControllerEventRouter(onEvent: { event in
+      oldEvents.append(event)
+    })
+
+    router.prepareUpdate(documentChanged: true, documentIdentifier: "document-b", onEvent: nil)
+    router.handle(click)
+    router.handle(.didRender(DiffRenderSummary(fileCount: 1)), renderedDocumentIdentifier: "document-b")
+    router.handle(click)
+
+    XCTAssertEqual(oldEvents, [click])
+  }
 }

@@ -38,6 +38,7 @@ struct ExampleContentView: View {
   private enum ExampleTab: Hashable {
     case patch
     case files
+    case manualSwap
 
     var title: String {
       switch self {
@@ -45,6 +46,25 @@ struct ExampleContentView: View {
         return "Patch"
       case .files:
         return "Files"
+      case .manualSwap:
+        return "Manual Swap"
+      }
+    }
+  }
+
+  private enum ManualSwapDocument: Hashable {
+    case patch
+    case files
+    case largeFiles
+
+    var title: String {
+      switch self {
+      case .patch:
+        return "Patch"
+      case .files:
+        return "Files"
+      case .largeFiles:
+        return "Large Files"
       }
     }
   }
@@ -52,6 +72,7 @@ struct ExampleContentView: View {
   @State private var latestEvent: String = "Waiting for renderer..."
   @State private var eventLog: [String] = []
   @State private var selectedTab: ExampleTab = .patch
+  @State private var manualSwapDocument: ManualSwapDocument = .patch
   @State private var appearance: DiffAppearance = .automatic
   @State private var style: DiffStyle = .split
   @State private var indicators: DiffIndicators = .bars
@@ -68,6 +89,10 @@ struct ExampleContentView: View {
   private let fileDocument = DiffDocument(
     files: SamplePatch.fileBasedMultiFile,
     title: "Files Example"
+  )
+  private let largeFileDocument = DiffDocument(
+    files: SamplePatch.largeFile,
+    title: "Large Files Example"
   )
 
   var body: some View {
@@ -97,6 +122,12 @@ struct ExampleContentView: View {
             Text(ExampleTab.files.title)
           }
           .tag(ExampleTab.files)
+
+          manualSwapView
+            .tabItem {
+              Text(ExampleTab.manualSwap.title)
+            }
+            .tag(ExampleTab.manualSwap)
         }
       }
     }
@@ -180,6 +211,24 @@ struct ExampleContentView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
         }
 
+        GroupBox("Manual Swap") {
+          VStack(alignment: .leading, spacing: 8) {
+            Text("Active document: \(manualSwapDocument.title)")
+              .font(.callout.monospaced())
+              .foregroundStyle(.secondary)
+
+            HStack {
+              Button("Show Patch") {
+                manualSwapDocument = .patch
+              }
+              Button("Show Large") {
+                manualSwapDocument = .largeFiles
+              }
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
         GroupBox("Recent Events") {
           VStack(alignment: .leading, spacing: 8) {
             ForEach(Array(eventLog.enumerated()), id: \.offset) { _, event in
@@ -201,6 +250,27 @@ struct ExampleContentView: View {
       .padding(16)
     }
     .background(Color(nsColor: .windowBackgroundColor))
+  }
+
+  private var manualSwapView: some View {
+    DiffView(
+      document: manualSwapDiffDocument,
+      configuration: configuration,
+      onEvent: { event in
+        handleManualSwapEvent(event, document: manualSwapDocument)
+      }
+    )
+  }
+
+  private var manualSwapDiffDocument: DiffDocument {
+    switch manualSwapDocument {
+    case .patch:
+      return patchDocument
+    case .files:
+      return fileDocument
+    case .largeFiles:
+      return largeFileDocument
+    }
   }
 
   private var configuration: DiffConfiguration {
@@ -234,10 +304,17 @@ struct ExampleContentView: View {
     }
   }
 
-  private func handleEvent(_ event: DiffEvent) {
-    let description = describe(event)
+  private func recordEvent(_ description: String) {
     latestEvent = description
-    eventLog = Array(([description] + eventLog).prefix(8))
+    eventLog = Array(([description] + eventLog).prefix(14))
+  }
+
+  private func handleEvent(_ event: DiffEvent) {
+    recordEvent(describe(event))
+  }
+
+  private func handleManualSwapEvent(_ event: DiffEvent, document: ManualSwapDocument) {
+    recordEvent("\(document.title) \(describe(event))")
   }
 
   private var preferredColorScheme: ColorScheme? {

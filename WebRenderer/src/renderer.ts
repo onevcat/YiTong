@@ -121,7 +121,17 @@ function buildSelectionChangedPayload(
   return { selection };
 }
 
-function renderDocument(payload: RenderDocumentPayload) {
+// Waits for two animation frames: the first only guarantees a paint has been
+// *scheduled*, the second guarantees that scheduled paint has actually run —
+// the standard trick for observing "the browser has drawn this to the screen"
+// rather than just "a DOM mutation was queued".
+function waitForNextPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
+async function renderDocument(payload: RenderDocumentPayload) {
   const root = getAppRoot();
   const renderedFiles = buildRenderedFiles(payload.document);
   state.document = payload.document;
@@ -163,6 +173,8 @@ function renderDocument(payload: RenderDocumentPayload) {
     instances.push(instance);
   }
 
+  await waitForNextPaint();
+
   postRenderStateChanged({
     state: "rendered",
     documentIdentifier: payload.document.identifier,
@@ -179,14 +191,14 @@ export async function handleIncomingMessage(envelope: Envelope<IncomingMessageTy
       applyAppearance(state.initializePayload.resolvedAppearance);
       return;
     case "renderDocument":
-      renderDocument(envelope.payload as RenderDocumentPayload);
+      await renderDocument(envelope.payload as RenderDocumentPayload);
       return;
     case "updateConfiguration": {
       if (state.document == null) {
         return;
       }
 
-      renderDocument({
+      await renderDocument({
         document: state.document,
         configuration: envelope.payload as RenderConfigurationPayload,
       });

@@ -71,7 +71,7 @@ enum YiTongPublicModelAdapter {
     switch event {
     case .didFinishInitialLoad:
       return .didFinishInitialLoad
-    case .didRender(let fileCount):
+    case .didRender(let fileCount, _):
       return .didRender(DiffRenderSummary(fileCount: fileCount))
     case .didActivateLine(let payload):
       return .didClickLine(
