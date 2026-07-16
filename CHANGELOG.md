@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Update the embedded `@pierre/diffs` renderer to 1.2.12.
+
+### Fixed
+- Decode Git C-quoted UTF-8 paths so patches containing non-ASCII file names render with readable paths.
+- Keep the optional Shiki WASM engine out of YiTong's JavaScript-only embedded renderer bundle.
+
 ## [0.2.0] - 2026-03-23
 ### Changed
 - Slim renderer bundle by curating Shiki language set to ~41 languages (from 371+), reducing gzipped bundle size by ~77% (1.7 MB → 387 KB).

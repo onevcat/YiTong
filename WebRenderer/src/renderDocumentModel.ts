@@ -1,4 +1,5 @@
 import { parseDiffFromFile, parsePatchFiles, type FileContents, type FileDiffMetadata } from "@pierre/diffs";
+import { normalizeGitPatchPaths } from "./gitPatchPathNormalizer";
 import type { RenderDocumentPayload } from "./protocol";
 
 export type RenderMode = "files" | "patch";
@@ -33,7 +34,8 @@ export function buildRenderedFiles(document: RenderDocument): RenderedDocumentFi
         newPath: file.newPath,
       }));
     case "patch": {
-      const files = parsePatchFiles(document.patch!).flatMap((patch) =>
+      const compatiblePatch = normalizeGitPatchPaths(document.patch!);
+      const files = parsePatchFiles(compatiblePatch).flatMap((patch) =>
         patch.files.map((fileDiff) => ({
           fileDiff,
           oldPath: fileDiff.prevName,

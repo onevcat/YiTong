@@ -10,7 +10,7 @@
     "bundle-assets": "npm run build && npm run copy-assets"
   },
   "dependencies": {
-    "@pierre/diffs": "1.0.11"
+    "@pierre/diffs": "1.2.12"
   },
   "devDependencies": {
     "typescript": "5.9.3",

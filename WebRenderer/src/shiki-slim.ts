@@ -14,6 +14,13 @@ export {
   defaultJavaScriptRegexConstructor,
 } from "@shikijs/engine-javascript";
 
+// @pierre/diffs also imports this optional API for its WASM mode. YiTong
+// always requests `shiki-js`, so exporting a throwing stub preserves the slim
+// bundle without pulling an unused WASM runtime into the app.
+export async function createOnigurumaEngine(..._args: unknown[]): Promise<never> {
+  throw new Error("YiTong embeds the JavaScript Shiki engine, not the WASM engine");
+}
+
 // ── Curated language set ─────────────────────────────────────────────────────
 // Apple / systems
 import swift from "@shikijs/langs/swift";
