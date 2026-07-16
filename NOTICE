@@ -6,4 +6,6 @@ This repository is licensed under the Apache License, Version 2.0.
 YiTong bundles and redistributes generated web assets derived from
 @pierre/diffs, @pierre/theme, and @pierre/theming. See
 THIRD_PARTY_NOTICES.md and the files under LICENSES/ for attribution and
-third-party license details.
+third-party license details. The complete generated WebRenderer dependency
+license bundle is LICENSES/WebRenderer-THIRD-PARTY-LICENSES.txt and is also
+distributed as a YiTongWebAssets package resource.

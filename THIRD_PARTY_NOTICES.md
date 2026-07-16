@@ -5,6 +5,17 @@ YiTong bundles web-renderer assets for local `WKWebView` rendering.
 Those bundled assets may include mechanically transformed or minified code
 derived from third-party packages during the `WebRenderer` build step.
 
+The complete license text and attribution for all 53 installed non-development
+packages represented by `WebRenderer/package-lock.json` is generated at:
+
+- `LICENSES/WebRenderer-THIRD-PARTY-LICENSES.txt`
+- `Sources/YiTongWebAssets/Resources/WebRenderer-THIRD-PARTY-LICENSES.txt`
+
+Run `npm run licenses` after dependency changes. `make verify` checks that the
+committed documentation copy and SwiftPM resource both match the lockfile and
+installed production dependency tree. The sections below call out the direct
+Pierre renderer packages.
+
 ## `@pierre/diffs`
 
 - Package: `@pierre/diffs`

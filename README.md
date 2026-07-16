@@ -234,10 +234,15 @@ make update-web-assets
 YiTong is licensed under the Apache License 2.0.
 
 This repository also bundles generated web assets derived from
-`@pierre/diffs` (`Apache-2.0`) for local `WKWebView` rendering.
+`@pierre/diffs` and its production dependency tree for local `WKWebView`
+rendering. A deterministic combined license file is regenerated from
+`WebRenderer/package-lock.json` by `npm run licenses` and checked by
+`make verify`. The same file is included in `YiTongWebAssets` resources so it
+is distributed with apps that embed the renderer.
 
 See:
 
 - [LICENSE](LICENSE)
 - [NOTICE](NOTICE)
 - [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- [WebRenderer production dependency licenses](LICENSES/WebRenderer-THIRD-PARTY-LICENSES.txt)

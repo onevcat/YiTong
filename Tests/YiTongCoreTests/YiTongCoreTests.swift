@@ -86,6 +86,20 @@ final class YiTongCoreTests: XCTestCase {
     XCTAssertNotNil(YiTongWebAssets.resourceURL(for: "index", withExtension: "html"))
   }
 
+  func testBundledThirdPartyLicensesLoad() throws {
+    let url = try XCTUnwrap(
+      YiTongWebAssets.resourceURL(
+        for: "WebRenderer-THIRD-PARTY-LICENSES",
+        withExtension: "txt"
+      )
+    )
+    let contents = try String(contentsOf: url, encoding: .utf8)
+
+    XCTAssertTrue(contents.contains("Included non-development packages: 53"))
+    XCTAssertTrue(contents.contains("diff 9.0.0"))
+    XCTAssertTrue(contents.contains("BSD 3-Clause License"))
+  }
+
   func testBundledIndexUsesRelativeAssetPaths() throws {
     let indexURL = try XCTUnwrap(YiTongWebAssets.resourceURL(for: "index", withExtension: "html"))
     let html = try String(contentsOf: indexURL, encoding: .utf8)

@@ -6,8 +6,10 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
+    "licenses": "node scripts/generate-third-party-licenses.mjs",
+    "licenses:check": "node scripts/generate-third-party-licenses.mjs --check",
     "copy-assets": "node scripts/copy-assets.mjs",
-    "bundle-assets": "npm run build && npm run copy-assets"
+    "bundle-assets": "npm run build && npm run copy-assets && npm run licenses"
   },
   "dependencies": {
     "@pierre/diffs": "1.2.12"
