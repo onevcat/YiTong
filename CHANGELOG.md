@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Update the embedded `@pierre/diffs` renderer to 1.2.12.
 - Generate and verify a complete license bundle for WebRenderer production dependencies.
+- Add optional diff font-size configuration with proportional line-height scaling.
+- Make UIKit and AppKit configuration updates public for live renderer changes.
 
 ### Fixed
 - Decode Git C-quoted UTF-8 paths so patches containing non-ASCII file names render with readable paths.

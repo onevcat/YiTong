@@ -62,7 +62,13 @@ public final class DiffViewController: UIViewController {
     )
   }
 
-  func update(document: DiffDocument, configuration: DiffConfiguration) {
+  /// Updates only the rendering configuration for the current document.
+  public func update(configuration: DiffConfiguration) {
+    update(document: document, configuration: configuration)
+  }
+
+  /// Updates the document and rendering configuration without replacing this controller.
+  public func update(document: DiffDocument, configuration: DiffConfiguration) {
     let documentChanged = self.document != document
     let configurationChanged = self.configuration != configuration
 
@@ -162,7 +168,13 @@ public final class DiffViewController: NSViewController {
     )
   }
 
-  func update(document: DiffDocument, configuration: DiffConfiguration) {
+  /// Updates only the rendering configuration for the current document.
+  public func update(configuration: DiffConfiguration) {
+    update(document: document, configuration: configuration)
+  }
+
+  /// Updates the document and rendering configuration without replacing this controller.
+  public func update(document: DiffDocument, configuration: DiffConfiguration) {
     let documentChanged = self.document != document
     let configurationChanged = self.configuration != configuration
 

@@ -63,7 +63,16 @@ enum YiTongPublicModelAdapter {
         }
       }(),
       allowsSelection: configuration.allowsSelection,
-      resolvedAppearance: resolvedAppearance
+      resolvedAppearance: resolvedAppearance,
+      fontSize: {
+        guard let fontSize = configuration.fontSize,
+              fontSize.isFinite,
+              (1...512).contains(fontSize)
+        else {
+          return nil
+        }
+        return fontSize
+      }()
     )
   }
 

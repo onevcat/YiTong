@@ -39,6 +39,7 @@ export interface RenderConfigurationPayload {
   inlineChangeStyle: InlineChangeStyle;
   allowsSelection: boolean;
   resolvedAppearance: ResolvedAppearance;
+  fontSize?: number;
 }
 
 export interface RenderDocumentPayload {

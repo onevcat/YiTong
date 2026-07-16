@@ -23,6 +23,9 @@ public struct DiffConfiguration: Sendable, Equatable {
   public var inlineChangeStyle: DiffInlineChangeStyle
   /// Maps to upstream `enableLineSelection`.
   public var allowsSelection: Bool
+  /// Overrides the renderer font size in CSS pixels. Values from 1 through 512
+  /// are supported; `nil` or an unsupported value keeps the renderer default.
+  public var fontSize: Double?
 
   public init(
     appearance: DiffAppearance = .automatic,
@@ -33,7 +36,8 @@ public struct DiffConfiguration: Sendable, Equatable {
     wrapsLines: Bool = false,
     showsFileHeaders: Bool = true,
     inlineChangeStyle: DiffInlineChangeStyle = .wordAlt,
-    allowsSelection: Bool = true
+    allowsSelection: Bool = true,
+    fontSize: Double? = nil
   ) {
     self.appearance = appearance
     self.style = style
@@ -44,6 +48,7 @@ public struct DiffConfiguration: Sendable, Equatable {
     self.showsFileHeaders = showsFileHeaders
     self.inlineChangeStyle = inlineChangeStyle
     self.allowsSelection = allowsSelection
+    self.fontSize = fontSize
   }
 
   public static let `default` = DiffConfiguration()

@@ -13,7 +13,7 @@ import type {
   SelectionPayload,
 } from "./protocol";
 import { buildRenderedFiles } from "./renderDocumentModel";
-import { toDiffOptions } from "./theme";
+import { applyDiffTypography, toDiffOptions } from "./theme";
 
 interface RendererState {
   initializePayload?: InitializePayload;
@@ -128,6 +128,7 @@ function renderDocument(payload: RenderDocumentPayload) {
   state.documentIdentifier = payload.document.identifier;
   state.configuration = payload.configuration;
   applyAppearance(payload.configuration.resolvedAppearance);
+  applyDiffTypography(root, payload.configuration.fontSize);
 
   postRenderStateChanged({
     state: "loading",
@@ -194,6 +195,7 @@ export async function handleIncomingMessage(envelope: Envelope<IncomingMessageTy
     }
     case "teardown":
       clearInstances();
+      applyDiffTypography(getAppRoot(), undefined);
       getAppRoot().innerHTML = "";
       state.document = undefined;
       state.documentIdentifier = undefined;

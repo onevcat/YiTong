@@ -17,6 +17,7 @@ final class YiTongTests: XCTestCase {
     XCTAssertTrue(configuration.showsFileHeaders)
     XCTAssertTrue(configuration.allowsSelection)
     XCTAssertFalse(configuration.wrapsLines)
+    XCTAssertNil(configuration.fontSize)
   }
 
   func testConfigurationBuildsBridgePayload() {
@@ -29,7 +30,8 @@ final class YiTongTests: XCTestCase {
       wrapsLines: true,
       showsFileHeaders: false,
       inlineChangeStyle: .char,
-      allowsSelection: false
+      allowsSelection: false,
+      fontSize: 18
     )
 
     let payload = YiTongPublicModelAdapter.makeBridgeConfiguration(
@@ -46,6 +48,18 @@ final class YiTongTests: XCTestCase {
     XCTAssertEqual(payload.inlineChangeStyle, .char)
     XCTAssertFalse(payload.allowsSelection)
     XCTAssertEqual(payload.resolvedAppearance, .dark)
+    XCTAssertEqual(payload.fontSize, 18)
+  }
+
+  func testInvalidFontSizesUseRendererDefault() {
+    for fontSize in [0, -1, 0.5, 513, .nan, .infinity] {
+      let payload = YiTongPublicModelAdapter.makeBridgeConfiguration(
+        from: DiffConfiguration(fontSize: fontSize),
+        resolvedAppearance: .light
+      )
+
+      XCTAssertNil(payload.fontSize)
+    }
   }
 
   func testRenderRequestBuildsDocumentAndConfigurationPayload() {

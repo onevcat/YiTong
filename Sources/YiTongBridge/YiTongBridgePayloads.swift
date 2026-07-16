@@ -205,6 +205,7 @@ public struct YiTongBridgeConfigurationPayload: Codable, Equatable, Sendable {
   public var inlineChangeStyle: YiTongBridgeInlineChangeStyle
   public var allowsSelection: Bool
   public var resolvedAppearance: YiTongBridgeResolvedAppearance
+  public var fontSize: Double?
 
   public init(
     diffStyle: YiTongBridgeDiffStyle,
@@ -215,7 +216,8 @@ public struct YiTongBridgeConfigurationPayload: Codable, Equatable, Sendable {
     showsFileHeaders: Bool,
     inlineChangeStyle: YiTongBridgeInlineChangeStyle,
     allowsSelection: Bool,
-    resolvedAppearance: YiTongBridgeResolvedAppearance
+    resolvedAppearance: YiTongBridgeResolvedAppearance,
+    fontSize: Double? = nil
   ) {
     self.diffStyle = diffStyle
     self.diffIndicators = diffIndicators
@@ -226,6 +228,7 @@ public struct YiTongBridgeConfigurationPayload: Codable, Equatable, Sendable {
     self.inlineChangeStyle = inlineChangeStyle
     self.allowsSelection = allowsSelection
     self.resolvedAppearance = resolvedAppearance
+    self.fontSize = fontSize
   }
 }
 

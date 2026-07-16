@@ -195,6 +195,7 @@ DiffView(
 - `showsFileHeaders`
 - `inlineChangeStyle`: `.wordAlt`, `.word`, `.char`, `.none`
 - `allowsSelection`
+- `fontSize`: optional 1...512 CSS-pixel font size; line height scales proportionally
 
 ## Feature Mapping
 
@@ -211,6 +212,7 @@ YiTong exposes a smaller Swift-facing API than the full `diffs` vanilla JS surfa
 | `disableFileHeader` | `DiffConfiguration.showsFileHeaders` | Supported |
 | `enableLineSelection` | `DiffConfiguration.allowsSelection` | Supported |
 | `themeType` | `DiffConfiguration.appearance` | Supported |
+| `--diffs-font-size` | `DiffConfiguration.fontSize` | Supported |
 | `theme` | Not public | Hidden |
 | `renderHeaderMetadata` | Not public | Not supported |
 | annotation/comment hooks | Not public | Not supported |
