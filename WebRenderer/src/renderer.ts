@@ -24,6 +24,7 @@ interface RendererState {
 
 const state: RendererState = {};
 const instances: FileDiff[] = [];
+let suppressesSelectionEvents = false;
 
 interface RenderedFileContext {
   fileIndex: number;
@@ -153,6 +154,10 @@ function renderDocument(payload: RenderDocumentPayload) {
         postLineActivated(buildLineActivatedPayload(context, props));
       },
       onLineSelected(range) {
+        if (suppressesSelectionEvents) {
+          return;
+        }
+
         postSelectionChanged(buildSelectionChangedPayload(context, range));
       },
     });
@@ -170,6 +175,27 @@ function renderDocument(payload: RenderDocumentPayload) {
       fileCount: renderedFiles.length,
     },
   });
+}
+
+// `LineSelectionManager` only tears down its drag state (anchor plus the
+// document-level pointermove/pointerup listeners) on `pointerup`, and the
+// browser never follows a `pointercancel` with one. Without the synthetic
+// `pointerup` the stale anchor would keep extending the selection on the next
+// pointer movement over the diff, even without a new `pointerdown`.
+export function cancelActiveSelection(event: { pointerId: number; pointerType: string }) {
+  suppressesSelectionEvents = true;
+  try {
+    document.dispatchEvent(
+      new PointerEvent("pointerup", { pointerId: event.pointerId, pointerType: event.pointerType }),
+    );
+    for (const instance of instances) {
+      instance.setSelectedLines(null);
+    }
+  } finally {
+    suppressesSelectionEvents = false;
+  }
+
+  postSelectionChanged({ selection: null });
 }
 
 export async function handleIncomingMessage(envelope: Envelope<IncomingMessageType, unknown>) {

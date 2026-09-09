@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Fixed
+- Touch drag on the line-number gutter now extends the selection on iPad. The gutter opts out of touch scrolling (`touch-action: none`) and the renderer releases the implicit pointer capture WebKit grants touch pointers, so `LineSelectionManager` tracks the finger instead of staying pinned to the starting line. A `pointercancel` during a gutter drag now clears the selection and reports `didChangeSelection(nil)` instead of leaving the host out of sync.
 
 ## [0.2.0] - 2026-03-23
 ### Changed
