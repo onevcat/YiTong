@@ -379,4 +379,88 @@ final class YiTongCoreTests: XCTestCase {
     XCTAssertTrue(second.isEmpty)
     XCTAssertEqual(coordinator.session.state, .terminated)
   }
+
+  private func makeAnnotation(id: String = "thread-1") -> YiTongBridgeAnnotationPayload {
+    YiTongBridgeAnnotationPayload(id: id, fileIndex: 0, side: .new, lineNumber: 7, kind: "thread", html: "<p>Hi</p>")
+  }
+
+  func testCoordinatorEmitsUpdateAnnotationsAfterReady() throws {
+    var coordinator = YiTongRendererCoordinator()
+
+    coordinator.pageDidStartLoading()
+    coordinator.pageDidFinishNavigation()
+    _ = coordinator.setRenderRequest(makeRequest())
+    _ = try coordinator.handleReady(
+      payload: YiTongReadyPayload(rendererVersion: "0.1.0-placeholder"),
+      platform: .macos
+    )
+
+    let annotations = [makeAnnotation()]
+    let commands = coordinator.updateAnnotations(annotations)
+
+    XCTAssertEqual(commands, [.updateAnnotations(YiTongUpdateAnnotationsPayload(annotations: annotations))])
+    XCTAssertEqual(coordinator.request?.annotations, annotations)
+  }
+
+  func testCoordinatorFoldsQueuedAnnotationsIntoRenderDocumentWhenReadyArrives() throws {
+    var coordinator = YiTongRendererCoordinator()
+    var request = makeRequest()
+
+    coordinator.pageDidStartLoading()
+    coordinator.pageDidFinishNavigation()
+    _ = coordinator.setRenderRequest(request)
+    let annotations = [makeAnnotation()]
+    let queuedCommands = coordinator.updateAnnotations(annotations)
+
+    XCTAssertTrue(queuedCommands.isEmpty)
+
+    let (commands, _) = try coordinator.handleReady(
+      payload: YiTongReadyPayload(rendererVersion: "0.1.0-placeholder"),
+      platform: .macos
+    )
+    request.annotations = annotations
+
+    XCTAssertEqual(commands.count, 2)
+    XCTAssertEqual(commands.last, .renderDocument(request.renderDocumentPayload))
+  }
+
+  func testCoordinatorKeepsAnnotationsAcrossConfigurationUpdate() throws {
+    var coordinator = YiTongRendererCoordinator()
+    var request = makeRequest()
+    request.annotations = [makeAnnotation()]
+
+    coordinator.pageDidStartLoading()
+    coordinator.pageDidFinishNavigation()
+    _ = coordinator.setRenderRequest(request)
+    _ = try coordinator.handleReady(
+      payload: YiTongReadyPayload(rendererVersion: "0.1.0-placeholder"),
+      platform: .macos
+    )
+
+    var configuration = request.configuration
+    configuration.diffStyle = .unified
+    _ = coordinator.updateConfiguration(configuration)
+
+    XCTAssertEqual(coordinator.request?.annotations, request.annotations)
+  }
+
+  func testRenderRequestPlannerKeepsAnnotationsWhenFallingBackToPatch() {
+    var request = makeFileRequest(
+      files: [
+        YiTongBridgeFilePayload(oldPath: "a.txt", newPath: "a.txt", oldContents: "old", newContents: "new"),
+      ]
+    )
+    request.annotations = [makeAnnotation()]
+
+    let result = YiTongRenderRequestPlanner.plan(
+      request,
+      limits: YiTongRenderRequestPlanner.Limits(maxTotalBytes: 1, maxFileBytes: 1, maxFiles: 10)
+    )
+
+    guard case .success(let planned, _) = result else {
+      return XCTFail("Expected patch fallback, got \(result)")
+    }
+    XCTAssertNil(planned.document.files)
+    XCTAssertEqual(planned.annotations, request.annotations)
+  }
 }

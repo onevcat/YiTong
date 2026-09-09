@@ -50,3 +50,31 @@ body {
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
 }
+
+/*
+ * Host-provided annotation content. The host owns typography and colours
+ * inside; this only frames the slot so raw markup does not collide with
+ * the surrounding code rows.
+ */
+.yitong-annotation {
+  box-sizing: border-box;
+  padding: 8px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: normal;
+  color: var(--page-text-light);
+  background: rgba(255, 255, 255, 0.72);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+:root[data-appearance="dark"] .yitong-annotation {
+  color: var(--page-text-dark);
+  background: rgba(0, 0, 0, 0.32);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.yitong-annotation [data-action] {
+  cursor: pointer;
+}

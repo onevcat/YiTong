@@ -37,25 +37,38 @@ public struct YiTongRendererCoordinator: Equatable, Sendable {
       return []
     }
 
-    return [
-      .renderDocument(
-        YiTongRenderDocumentPayload(document: request.document, configuration: request.configuration)
-      ),
-    ]
+    return [.renderDocument(request.renderDocumentPayload)]
   }
 
   public mutating func updateConfiguration(_ configuration: YiTongBridgeConfigurationPayload) -> [YiTongHostCommand] {
-    guard session.state != .terminated, let request else {
+    guard session.state != .terminated, var request else {
       return []
     }
 
-    self.request = YiTongRenderRequest(document: request.document, configuration: configuration)
+    request.configuration = configuration
+    self.request = request
 
     guard hasReceivedReady else {
       return []
     }
 
     return [.updateConfiguration(configuration)]
+  }
+
+  public mutating func updateAnnotations(_ annotations: [YiTongBridgeAnnotationPayload]) -> [YiTongHostCommand] {
+    guard session.state != .terminated, var request else {
+      return []
+    }
+
+    request.annotations = annotations
+    self.request = request
+
+    // Before the renderer is ready the annotations ride along with the pending renderDocument.
+    guard hasReceivedReady else {
+      return []
+    }
+
+    return [.updateAnnotations(YiTongUpdateAnnotationsPayload(annotations: annotations))]
   }
 
   public mutating func handleReady(
@@ -91,11 +104,7 @@ public struct YiTongRendererCoordinator: Equatable, Sendable {
     }
 
     if let request {
-      commands.append(
-        .renderDocument(
-          YiTongRenderDocumentPayload(document: request.document, configuration: request.configuration)
-        )
-      )
+      commands.append(.renderDocument(request.renderDocumentPayload))
     }
 
     _ = payload

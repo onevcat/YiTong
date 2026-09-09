@@ -1,6 +1,14 @@
 import { FileDiff } from "@pierre/diffs";
-import { postLineActivated, postRenderStateChanged, postSelectionChanged } from "./bridge";
+import { createAnnotationContentElement, resolveActivatedAction } from "./annotationContent";
+import {
+  annotationsForFile,
+  buildAnnotationActivatedPayload,
+  groupAnnotationsByFile,
+  type LineAnnotationForFile,
+} from "./annotationModel";
+import { postAnnotationActivated, postLineActivated, postRenderStateChanged, postSelectionChanged } from "./bridge";
 import type {
+  AnnotationPayload,
   Envelope,
   IncomingMessageType,
   InitializePayload,
@@ -11,8 +19,9 @@ import type {
   RenderDocumentPayload,
   SelectionChangedPayload,
   SelectionPayload,
+  UpdateAnnotationsPayload,
 } from "./protocol";
-import { buildRenderedFiles } from "./renderDocumentModel";
+import { buildRenderedFiles, type RenderedDocumentFile } from "./renderDocumentModel";
 import { toDiffOptions } from "./theme";
 
 interface RendererState {
@@ -20,10 +29,13 @@ interface RendererState {
   document?: RenderDocumentPayload["document"];
   documentIdentifier?: string;
   configuration?: RenderConfigurationPayload;
+  annotations: AnnotationPayload[];
+  renderedFiles: RenderedDocumentFile[];
 }
 
-const state: RendererState = {};
-const instances: FileDiff[] = [];
+const state: RendererState = { annotations: [], renderedFiles: [] };
+const instances: FileDiff<AnnotationPayload>[] = [];
+let annotationClickListenerInstalled = false;
 
 interface RenderedFileContext {
   fileIndex: number;
@@ -121,13 +133,57 @@ function buildSelectionChangedPayload(
   return { selection };
 }
 
+function renderAnnotation(annotation: LineAnnotationForFile): HTMLElement {
+  return createAnnotationContentElement(annotation.metadata);
+}
+
+function installAnnotationClickListener(root: HTMLElement) {
+  if (annotationClickListenerInstalled) {
+    return;
+  }
+  annotationClickListenerInstalled = true;
+
+  root.addEventListener("click", (event) => {
+    const activated = resolveActivatedAction(event.target);
+    if (activated == null) {
+      return;
+    }
+
+    const annotation = state.annotations.find((candidate) => candidate.id === activated.annotationID);
+    if (annotation == null) {
+      return;
+    }
+
+    event.preventDefault();
+    postAnnotationActivated(buildAnnotationActivatedPayload(annotation, activated.action));
+  });
+}
+
+function updateAnnotations(payload: UpdateAnnotationsPayload) {
+  state.annotations = payload.annotations;
+  const grouped = groupAnnotationsByFile(state.annotations, state.renderedFiles.length);
+
+  // Re-rendering without `forceRender` reuses the highlight cache, so only the
+  // annotation slots and their content are rebuilt.
+  for (const [fileIndex, instance] of instances.entries()) {
+    instance.render({
+      fileDiff: state.renderedFiles[fileIndex].fileDiff,
+      lineAnnotations: annotationsForFile(grouped, fileIndex),
+    });
+  }
+}
+
 function renderDocument(payload: RenderDocumentPayload) {
   const root = getAppRoot();
   const renderedFiles = buildRenderedFiles(payload.document);
   state.document = payload.document;
   state.documentIdentifier = payload.document.identifier;
   state.configuration = payload.configuration;
+  state.annotations = payload.annotations ?? [];
+  state.renderedFiles = renderedFiles;
+  const groupedAnnotations = groupAnnotationsByFile(state.annotations, renderedFiles.length);
   applyAppearance(payload.configuration.resolvedAppearance);
+  installAnnotationClickListener(root);
 
   postRenderStateChanged({
     state: "loading",
@@ -147,7 +203,7 @@ function renderDocument(payload: RenderDocumentPayload) {
       oldPath: renderedFile.oldPath,
       newPath: renderedFile.newPath,
     };
-    const instance = new FileDiff({
+    const instance = new FileDiff<AnnotationPayload>({
       ...toDiffOptions(payload.configuration),
       onLineClick(props) {
         postLineActivated(buildLineActivatedPayload(context, props));
@@ -155,10 +211,12 @@ function renderDocument(payload: RenderDocumentPayload) {
       onLineSelected(range) {
         postSelectionChanged(buildSelectionChangedPayload(context, range));
       },
+      renderAnnotation,
     });
     instance.render({
       fileDiff: renderedFile.fileDiff,
       containerWrapper: section,
+      lineAnnotations: annotationsForFile(groupedAnnotations, fileIndex),
     });
     instances.push(instance);
   }
@@ -189,15 +247,25 @@ export async function handleIncomingMessage(envelope: Envelope<IncomingMessageTy
       renderDocument({
         document: state.document,
         configuration: envelope.payload as RenderConfigurationPayload,
+        annotations: state.annotations,
       });
       return;
     }
+    case "updateAnnotations":
+      if (state.document == null) {
+        return;
+      }
+
+      updateAnnotations(envelope.payload as UpdateAnnotationsPayload);
+      return;
     case "teardown":
       clearInstances();
       getAppRoot().innerHTML = "";
       state.document = undefined;
       state.documentIdentifier = undefined;
       state.configuration = undefined;
+      state.annotations = [];
+      state.renderedFiles = [];
       return;
   }
 }

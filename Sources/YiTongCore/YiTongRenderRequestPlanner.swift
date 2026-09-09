@@ -50,7 +50,8 @@ struct YiTongRenderRequestPlanner {
             patch: request.document.patch,
             files: nil
           ),
-          configuration: request.configuration
+          configuration: request.configuration,
+          annotations: request.annotations
         ),
         diagnostic: "Falling back to patch-based rendering: \(violation)"
       )

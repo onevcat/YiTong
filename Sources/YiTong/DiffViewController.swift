@@ -10,16 +10,19 @@ public final class DiffViewController: UIViewController {
   private let host = YiTongWebViewHost(platform: .ios)
   private var document: DiffDocument
   private var configuration: DiffConfiguration
+  private var annotations: [DiffAnnotation]
   private let onEvent: ((DiffEvent) -> Void)?
   private var documentIdentifier = UUID().uuidString
 
   public init(
     document: DiffDocument,
     configuration: DiffConfiguration = .default,
+    annotations: [DiffAnnotation] = [],
     onEvent: ((DiffEvent) -> Void)? = nil
   ) {
     self.document = document
     self.configuration = configuration
+    self.annotations = annotations
     self.onEvent = onEvent
     super.init(nibName: nil, bundle: nil)
   }
@@ -58,20 +61,32 @@ public final class DiffViewController: UIViewController {
       documentIdentifier: documentIdentifier,
       document: document,
       configuration: configuration,
+      annotations: annotations,
       resolvedAppearance: resolveAppearance(configuration.appearance)
     )
   }
 
+  /// Replaces the annotations shown beneath diff lines without re-rendering the document.
+  public func update(annotations: [DiffAnnotation]) {
+    update(document: document, configuration: configuration, annotations: annotations)
+  }
+
   func update(document: DiffDocument, configuration: DiffConfiguration) {
+    update(document: document, configuration: configuration, annotations: annotations)
+  }
+
+  func update(document: DiffDocument, configuration: DiffConfiguration, annotations: [DiffAnnotation]) {
     let documentChanged = self.document != document
     let configurationChanged = self.configuration != configuration
+    let annotationsChanged = self.annotations != annotations
 
-    guard documentChanged || configurationChanged else {
+    guard documentChanged || configurationChanged || annotationsChanged else {
       return
     }
 
     self.document = document
     self.configuration = configuration
+    self.annotations = annotations
 
     guard isViewLoaded else {
       if documentChanged {
@@ -83,8 +98,15 @@ public final class DiffViewController: UIViewController {
     if documentChanged {
       documentIdentifier = UUID().uuidString
       host.render(request: makeRenderRequest())
-    } else if configurationChanged {
+      return
+    }
+
+    if configurationChanged {
       host.updateConfiguration(makeRenderRequest().configuration)
+    }
+
+    if annotationsChanged {
+      host.updateAnnotations(makeRenderRequest().annotations)
     }
   }
 
@@ -111,16 +133,19 @@ public final class DiffViewController: NSViewController {
   private let host = YiTongWebViewHost(platform: .macos)
   private var document: DiffDocument
   private var configuration: DiffConfiguration
+  private var annotations: [DiffAnnotation]
   private let onEvent: ((DiffEvent) -> Void)?
   private var documentIdentifier = UUID().uuidString
 
   public init(
     document: DiffDocument,
     configuration: DiffConfiguration = .default,
+    annotations: [DiffAnnotation] = [],
     onEvent: ((DiffEvent) -> Void)? = nil
   ) {
     self.document = document
     self.configuration = configuration
+    self.annotations = annotations
     self.onEvent = onEvent
     super.init(nibName: nil, bundle: nil)
   }
@@ -158,20 +183,32 @@ public final class DiffViewController: NSViewController {
       documentIdentifier: documentIdentifier,
       document: document,
       configuration: configuration,
+      annotations: annotations,
       resolvedAppearance: resolveAppearance(configuration.appearance)
     )
   }
 
+  /// Replaces the annotations shown beneath diff lines without re-rendering the document.
+  public func update(annotations: [DiffAnnotation]) {
+    update(document: document, configuration: configuration, annotations: annotations)
+  }
+
   func update(document: DiffDocument, configuration: DiffConfiguration) {
+    update(document: document, configuration: configuration, annotations: annotations)
+  }
+
+  func update(document: DiffDocument, configuration: DiffConfiguration, annotations: [DiffAnnotation]) {
     let documentChanged = self.document != document
     let configurationChanged = self.configuration != configuration
+    let annotationsChanged = self.annotations != annotations
 
-    guard documentChanged || configurationChanged else {
+    guard documentChanged || configurationChanged || annotationsChanged else {
       return
     }
 
     self.document = document
     self.configuration = configuration
+    self.annotations = annotations
 
     guard isViewLoaded else {
       if documentChanged {
@@ -183,8 +220,15 @@ public final class DiffViewController: NSViewController {
     if documentChanged {
       documentIdentifier = UUID().uuidString
       host.render(request: makeRenderRequest())
-    } else if configurationChanged {
+      return
+    }
+
+    if configurationChanged {
       host.updateConfiguration(makeRenderRequest().configuration)
+    }
+
+    if annotationsChanged {
+      host.updateAnnotations(makeRenderRequest().annotations)
     }
   }
 

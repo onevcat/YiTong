@@ -60,6 +60,8 @@ struct ExampleContentView: View {
   @State private var wrapsLines = false
   @State private var showsFileHeaders = true
   @State private var allowsSelection = true
+  @State private var showsSampleThread = true
+  @State private var threadMessages = SampleAnnotation.seedMessages
 
   private let patchDocument = DiffDocument(
     patch: SamplePatch.multiFile,
@@ -81,6 +83,7 @@ struct ExampleContentView: View {
           DiffView(
             document: patchDocument,
             configuration: configuration,
+            annotations: annotations,
             onEvent: handleEvent
           )
           .tabItem {
@@ -91,6 +94,7 @@ struct ExampleContentView: View {
           DiffView(
             document: fileDocument,
             configuration: configuration,
+            annotations: annotations,
             onEvent: handleEvent
           )
           .tabItem {
@@ -169,6 +173,20 @@ struct ExampleContentView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
         }
 
+        GroupBox("Annotations") {
+          VStack(alignment: .leading, spacing: 8) {
+            Toggle("Show sample discussion", isOn: $showsSampleThread)
+            Text("Reply appends a message through update(annotations:); Resolve hides the thread. Both arrive as didActivateAnnotation.")
+              .font(.callout)
+              .foregroundStyle(.secondary)
+            Button("Reset discussion") {
+              threadMessages = SampleAnnotation.seedMessages
+              showsSampleThread = true
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
         GroupBox("Acceptance") {
           VStack(alignment: .leading, spacing: 8) {
             Text("Use the controls to verify runtime updates without reloading the host app.")
@@ -216,6 +234,13 @@ struct ExampleContentView: View {
     )
   }
 
+  private var annotations: [DiffAnnotation] {
+    guard showsSampleThread else {
+      return []
+    }
+    return [SampleAnnotation.thread(messages: threadMessages)]
+  }
+
   private func describe(_ event: DiffEvent) -> String {
     switch event {
     case .didFinishInitialLoad:
@@ -229,6 +254,8 @@ struct ExampleContentView: View {
         return "didChangeSelection(fileIndex: \(selection.fileIndex))"
       }
       return "didChangeSelection(nil)"
+    case .didActivateAnnotation(let action):
+      return "didActivateAnnotation(id: \(action.annotationID), action: \(action.action))"
     case .didFail(let error):
       return "didFail(\(error.code))"
     }
@@ -238,6 +265,26 @@ struct ExampleContentView: View {
     let description = describe(event)
     latestEvent = description
     eventLog = Array(([description] + eventLog).prefix(8))
+    print("[YiTongExample] \(description)")
+
+    if case .didActivateAnnotation(let action) = event {
+      handleAnnotationAction(action)
+    }
+  }
+
+  private func handleAnnotationAction(_ action: DiffAnnotationAction) {
+    guard action.annotationID == SampleAnnotation.threadID else {
+      return
+    }
+
+    switch action.action {
+    case SampleAnnotation.replyAction:
+      threadMessages.append(SampleAnnotation.Message(author: "You", body: "Reply #\(threadMessages.count - 1) from native"))
+    case SampleAnnotation.resolveAction:
+      showsSampleThread = false
+    default:
+      break
+    }
   }
 
   private var preferredColorScheme: ColorScheme? {
