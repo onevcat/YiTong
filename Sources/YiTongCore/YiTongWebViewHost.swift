@@ -159,8 +159,25 @@ public final class YiTongWebViewHost: NSObject {
       return
     }
 
-    currentRequest = YiTongRenderRequest(document: request.document, configuration: configuration)
+    currentRequest = YiTongRenderRequest(
+      document: request.document,
+      configuration: configuration,
+      annotations: request.annotations
+    )
     let commands = coordinator.updateConfiguration(configuration)
+    for command in commands {
+      send(command)
+    }
+  }
+
+  public func updateAnnotations(_ annotations: [YiTongBridgeAnnotationPayload]) {
+    guard var request = currentRequest else {
+      return
+    }
+
+    request.annotations = annotations
+    currentRequest = request
+    let commands = coordinator.updateAnnotations(annotations)
     for command in commands {
       send(command)
     }
@@ -231,6 +248,18 @@ public final class YiTongWebViewHost: NSObject {
     }
   }
 
+  private func handleAnnotationActivated(_ data: Data) {
+    do {
+      let envelope = try YiTongBridgeCodec.decode(
+        YiTongBridgeIncomingEnvelope<YiTongAnnotationActivatedPayload>.self,
+        from: data
+      )
+      eventHandler?(.didActivateAnnotation(envelope.payload))
+    } catch {
+      eventHandler?(.didFail(code: "bridge_decode_failed", message: error.localizedDescription))
+    }
+  }
+
   private func send(_ command: YiTongHostCommand) {
     let encodedData: Data
 
@@ -257,6 +286,14 @@ public final class YiTongWebViewHost: NSObject {
           YiTongBridgeOutgoingEnvelope(
             id: nextID(),
             type: .updateConfiguration,
+            payload: payload
+          )
+        )
+      case .updateAnnotations(let payload):
+        encodedData = try YiTongBridgeCodec.encode(
+          YiTongBridgeOutgoingEnvelope(
+            id: nextID(),
+            type: .updateAnnotations,
             payload: payload
           )
         )
@@ -411,6 +448,8 @@ extension YiTongWebViewHost: WKScriptMessageHandler {
         handleLineActivated(data)
       case YiTongBridgeIncomingType.selectionChanged.rawValue:
         handleSelectionChanged(data)
+      case YiTongBridgeIncomingType.annotationActivated.rawValue:
+        handleAnnotationActivated(data)
       default:
         break
       }
@@ -430,6 +469,8 @@ private extension YiTongHostCommand {
       return "renderDocument(documentIdentifier: \(payload.document.identifier))"
     case .updateConfiguration:
       return "updateConfiguration"
+    case .updateAnnotations(let payload):
+      return "updateAnnotations(count: \(payload.annotations.count))"
     case .teardown:
       return "teardown"
     }

@@ -219,4 +219,64 @@ final class YiTongTests: XCTestCase {
 
     XCTAssertNotNil(controller)
   }
+
+  func testRenderRequestMapsAnnotationsToBridgePayloads() {
+    let request = YiTongPublicModelAdapter.makeRenderRequest(
+      documentIdentifier: "document-annotated",
+      document: DiffDocument(patch: "diff --git a/a.txt b/a.txt"),
+      configuration: .default,
+      annotations: [
+        DiffAnnotation(id: "thread-1", fileIndex: 0, side: .new, lineNumber: 7, kind: "thread", content: .html("<p>Hi</p>")),
+        DiffAnnotation(id: "note-1", fileIndex: 1, side: .old, lineNumber: 3, content: .text("Note")),
+      ],
+      resolvedAppearance: .light
+    )
+
+    XCTAssertEqual(
+      request.annotations,
+      [
+        YiTongBridgeAnnotationPayload(id: "thread-1", fileIndex: 0, side: .new, lineNumber: 7, kind: "thread", html: "<p>Hi</p>"),
+        YiTongBridgeAnnotationPayload(id: "note-1", fileIndex: 1, side: .old, lineNumber: 3, text: "Note"),
+      ]
+    )
+  }
+
+  func testRenderRequestWithoutAnnotationsSendsEmptyList() {
+    let request = YiTongPublicModelAdapter.makeRenderRequest(
+      documentIdentifier: "document-plain",
+      document: DiffDocument(patch: "diff --git a/a.txt b/a.txt"),
+      configuration: .default,
+      resolvedAppearance: .light
+    )
+
+    XCTAssertEqual(request.annotations, [])
+  }
+
+  func testHostAnnotationActivatedMapsToPublicDiffEvent() {
+    let event = YiTongPublicModelAdapter.makeDiffEvent(
+      from: .didActivateAnnotation(
+        YiTongAnnotationActivatedPayload(id: "thread-1", action: "reply", kind: "thread", fileIndex: 0, side: .new, lineNumber: 7)
+      )
+    )
+
+    XCTAssertEqual(
+      event,
+      .didActivateAnnotation(
+        DiffAnnotationAction(annotationID: "thread-1", action: "reply", kind: "thread", fileIndex: 0, side: .new, lineNumber: 7)
+      )
+    )
+  }
+
+  @MainActor
+  func testDiffViewControllerAcceptsAnnotationUpdatesBeforeViewLoads() {
+    let controller = DiffViewController(document: DiffDocument(patch: "diff --git a/a.txt b/a.txt"))
+
+    controller.update(
+      annotations: [
+        DiffAnnotation(id: "thread-1", fileIndex: 0, side: .new, lineNumber: 1, content: .text("Note")),
+      ]
+    )
+
+    XCTAssertNotNil(controller)
+  }
 }

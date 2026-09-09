@@ -7,6 +7,7 @@ enum YiTongPublicModelAdapter {
     documentIdentifier: String,
     document: DiffDocument,
     configuration: DiffConfiguration,
+    annotations: [DiffAnnotation] = [],
     resolvedAppearance: YiTongBridgeResolvedAppearance
   ) -> YiTongRenderRequest {
     YiTongRenderRequest(
@@ -26,8 +27,49 @@ enum YiTongPublicModelAdapter {
       configuration: makeBridgeConfiguration(
         from: configuration,
         resolvedAppearance: resolvedAppearance
-      )
+      ),
+      annotations: annotations.map(makeBridgeAnnotation)
     )
+  }
+
+  static func makeBridgeAnnotation(from annotation: DiffAnnotation) -> YiTongBridgeAnnotationPayload {
+    YiTongBridgeAnnotationPayload(
+      id: annotation.id,
+      fileIndex: annotation.fileIndex,
+      side: makeBridgeAnnotationSide(annotation.side),
+      lineNumber: annotation.lineNumber,
+      kind: annotation.kind,
+      html: {
+        if case .html(let html) = annotation.content {
+          return html
+        }
+        return nil
+      }(),
+      text: {
+        if case .text(let text) = annotation.content {
+          return text
+        }
+        return nil
+      }()
+    )
+  }
+
+  private static func makeBridgeAnnotationSide(_ side: DiffAnnotationSide) -> YiTongBridgeAnnotationSide {
+    switch side {
+    case .old:
+      return .old
+    case .new:
+      return .new
+    }
+  }
+
+  private static func makeAnnotationSide(_ side: YiTongBridgeAnnotationSide) -> DiffAnnotationSide {
+    switch side {
+    case .old:
+      return .old
+    case .new:
+      return .new
+    }
   }
 
   static func makeBridgeConfiguration(
@@ -139,6 +181,17 @@ enum YiTongPublicModelAdapter {
             )
           )
         }
+      )
+    case .didActivateAnnotation(let payload):
+      return .didActivateAnnotation(
+        DiffAnnotationAction(
+          annotationID: payload.id,
+          action: payload.action,
+          kind: payload.kind,
+          fileIndex: payload.fileIndex,
+          side: makeAnnotationSide(payload.side),
+          lineNumber: payload.lineNumber
+        )
       )
     case .didFail(let code, let message):
       return .didFail(DiffError(code: code, message: message))

@@ -5,6 +5,7 @@ public enum DiffEvent: Sendable, Equatable {
   case didRender(DiffRenderSummary)
   case didClickLine(DiffLineReference)
   case didChangeSelection(DiffSelection?)
+  case didActivateAnnotation(DiffAnnotationAction)
   case didFail(DiffError)
 }
 
