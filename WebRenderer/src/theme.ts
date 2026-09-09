@@ -1,4 +1,5 @@
 import type { InlineChangeStyle, RenderConfigurationPayload, ResolvedAppearance } from "./protocol";
+import { LINE_NUMBER_TOUCH_ACTION_CSS } from "./touchLineSelection";
 
 export function resolveThemeType(appearance: ResolvedAppearance): "light" | "dark" {
   return appearance;
@@ -32,5 +33,6 @@ export function toDiffOptions(configuration: RenderConfigurationPayload) {
     disableFileHeader: !configuration.showsFileHeaders,
     lineDiffType: resolveLineDiffType(configuration.inlineChangeStyle),
     enableLineSelection: configuration.allowsSelection,
+    unsafeCSS: LINE_NUMBER_TOUCH_ACTION_CSS,
   } as const;
 }

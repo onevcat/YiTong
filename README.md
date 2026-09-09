@@ -195,6 +195,7 @@ DiffView(
 - `showsFileHeaders`
 - `inlineChangeStyle`: `.wordAlt`, `.word`, `.char`, `.none`
 - `allowsSelection`
+  - On touch devices the line-number gutter opts out of scrolling so a finger drag selects lines; start scroll gestures from the code area instead.
 
 ## Feature Mapping
 
