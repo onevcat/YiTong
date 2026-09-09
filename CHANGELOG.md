@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- Annotations: `DiffAnnotation` attaches host-rendered HTML or text beneath a diff line, `DiffView` and `DiffViewController` accept an `annotations` list, `DiffViewController.update(annotations:)` updates them in place, and `DiffEvent.didActivateAnnotation` reports clicks on `data-action` elements.
+- Bridge protocol: `renderDocument` carries `annotations`, new `updateAnnotations` command and `annotationActivated` event.
+- Example app: sample discussion thread with Reply and Resolve actions.
 
 ## [0.2.0] - 2026-03-23
 ### Changed

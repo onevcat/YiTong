@@ -175,12 +175,53 @@ DiffView(
       print(line.fileIndex, line.number)
     case .didChangeSelection(let selection):
       print(selection as Any)
+    case .didActivateAnnotation(let action):
+      print(action.annotationID, action.action)
     case .didFail(let error):
       print(error.code, error.message)
     }
   }
 )
 ```
+
+### Annotations
+
+Annotations attach host-rendered content beneath a diff line: a review thread, a comment composer, a lint warning.
+YiTong stays agnostic about what the content means; the host renders it and reacts to clicks.
+
+```swift
+import YiTong
+
+let thread = DiffAnnotation(
+  id: "thread-42",
+  fileIndex: 0,
+  side: .new,
+  lineNumber: 17,
+  kind: "thread",
+  content: .html(
+    """
+    <p><strong>Amadeus</strong> Should this be optional?</p>
+    <button data-action="reply">Reply</button>
+    """
+  )
+)
+
+DiffView(
+  document: document,
+  annotations: [thread],
+  onEvent: { event in
+    if case .didActivateAnnotation(let action) = event {
+      // action.annotationID == "thread-42", action.action == "reply"
+    }
+  }
+)
+```
+
+- `side` and `lineNumber` address the line the same way `DiffLineReference` does. Multi-line annotations anchor to one line (typically the end of the range); draw range information into the content yourself.
+- `content` is either `.html(String)` or `.text(String)`. HTML is inserted verbatim, apart from script execution vectors (`<script>`, `on*` handlers, `javascript:` URLs), which the renderer strips. Everything else, including inline styles and `<style>` blocks, is the host's responsibility.
+- Any element inside the HTML carrying a `data-action` attribute reports clicks through `DiffEvent.didActivateAnnotation`, echoing the annotation's `id`, `kind` and line coordinates alongside the action string.
+- Changing only `annotations` on `DiffView`, or calling `DiffViewController.update(annotations:)`, updates the annotations in place without re-rendering the document.
+- `annotations` defaults to an empty list, so existing call sites need no changes.
 
 ## Configuration
 
@@ -213,7 +254,7 @@ YiTong exposes a smaller Swift-facing API than the full `diffs` vanilla JS surfa
 | `themeType` | `DiffConfiguration.appearance` | Supported |
 | `theme` | Not public | Hidden |
 | `renderHeaderMetadata` | Not public | Not supported |
-| annotation/comment hooks | Not public | Not supported |
+| `lineAnnotations` / `renderAnnotation` | `DiffAnnotation`, `DiffEvent.didActivateAnnotation` | Supported |
 | worker pool options | Not public | Not supported |
 | custom DOM / unsafe CSS hooks | Not public | Not supported |
 
