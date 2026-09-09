@@ -1,6 +1,7 @@
 import {
   PROTOCOL_VERSION,
   RENDERER_VERSION,
+  type AnnotationActivatedPayload,
   type Envelope,
   type IncomingMessageType,
   type LineActivatedPayload,
@@ -63,6 +64,10 @@ export function postLineActivated(payload: LineActivatedPayload) {
 
 export function postSelectionChanged(payload: SelectionChangedPayload) {
   postToNative("selectionChanged", payload);
+}
+
+export function postAnnotationActivated(payload: AnnotationActivatedPayload) {
+  postToNative("annotationActivated", payload);
 }
 
 export function installMessageReceiver(handler: IncomingHandler) {

@@ -4,6 +4,7 @@ public enum YiTongBridgeOutgoingType: String, Codable, Sendable {
   case initialize
   case renderDocument
   case updateConfiguration
+  case updateAnnotations
   case teardown
 }
 
@@ -12,6 +13,7 @@ public enum YiTongBridgeIncomingType: String, Codable, Sendable {
   case renderStateChanged
   case lineActivated
   case selectionChanged
+  case annotationActivated
 }
 
 public struct YiTongBridgeOutgoingEnvelope<Payload: Codable & Equatable & Sendable>: Codable, Equatable, Sendable {
@@ -229,13 +231,78 @@ public struct YiTongBridgeConfigurationPayload: Codable, Equatable, Sendable {
   }
 }
 
+public enum YiTongBridgeAnnotationSide: String, Codable, Equatable, Sendable {
+  case old
+  case new
+}
+
+/// Host-provided content rendered beneath a diff line.
+///
+/// Exactly one of `html` or `text` is expected. The host owns content safety;
+/// the renderer only strips script execution vectors from `html`.
+public struct YiTongBridgeAnnotationPayload: Codable, Equatable, Sendable {
+  public var id: String
+  public var fileIndex: Int
+  public var side: YiTongBridgeAnnotationSide
+  public var lineNumber: Int
+  public var kind: String?
+  public var html: String?
+  public var text: String?
+
+  public init(
+    id: String,
+    fileIndex: Int,
+    side: YiTongBridgeAnnotationSide,
+    lineNumber: Int,
+    kind: String? = nil,
+    html: String? = nil,
+    text: String? = nil
+  ) {
+    self.id = id
+    self.fileIndex = fileIndex
+    self.side = side
+    self.lineNumber = lineNumber
+    self.kind = kind
+    self.html = html
+    self.text = text
+  }
+}
+
 public struct YiTongRenderDocumentPayload: Codable, Equatable, Sendable {
   public var document: YiTongBridgeDocumentPayload
   public var configuration: YiTongBridgeConfigurationPayload
+  public var annotations: [YiTongBridgeAnnotationPayload]
 
-  public init(document: YiTongBridgeDocumentPayload, configuration: YiTongBridgeConfigurationPayload) {
+  private enum CodingKeys: String, CodingKey {
+    case document
+    case configuration
+    case annotations
+  }
+
+  public init(
+    document: YiTongBridgeDocumentPayload,
+    configuration: YiTongBridgeConfigurationPayload,
+    annotations: [YiTongBridgeAnnotationPayload] = []
+  ) {
     self.document = document
     self.configuration = configuration
+    self.annotations = annotations
+  }
+
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.document = try container.decode(YiTongBridgeDocumentPayload.self, forKey: .document)
+    self.configuration = try container.decode(YiTongBridgeConfigurationPayload.self, forKey: .configuration)
+    // Payloads produced before annotations existed omit the key entirely.
+    self.annotations = try container.decodeIfPresent([YiTongBridgeAnnotationPayload].self, forKey: .annotations) ?? []
+  }
+}
+
+public struct YiTongUpdateAnnotationsPayload: Codable, Equatable, Sendable {
+  public var annotations: [YiTongBridgeAnnotationPayload]
+
+  public init(annotations: [YiTongBridgeAnnotationPayload]) {
+    self.annotations = annotations
   }
 }
 
@@ -318,6 +385,31 @@ public struct YiTongSelectionChangedPayload: Codable, Equatable, Sendable {
 
   public init(selection: YiTongSelectionPayload?) {
     self.selection = selection
+  }
+}
+
+public struct YiTongAnnotationActivatedPayload: Codable, Equatable, Sendable {
+  public var id: String
+  public var action: String
+  public var kind: String?
+  public var fileIndex: Int
+  public var side: YiTongBridgeAnnotationSide
+  public var lineNumber: Int
+
+  public init(
+    id: String,
+    action: String,
+    kind: String? = nil,
+    fileIndex: Int,
+    side: YiTongBridgeAnnotationSide,
+    lineNumber: Int
+  ) {
+    self.id = id
+    self.action = action
+    self.kind = kind
+    self.fileIndex = fileIndex
+    self.side = side
+    self.lineNumber = lineNumber
   }
 }
 

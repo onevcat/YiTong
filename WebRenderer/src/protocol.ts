@@ -1,8 +1,18 @@
 export const PROTOCOL_VERSION = 1;
 export const RENDERER_VERSION = "0.1.0-placeholder";
 
-export type OutgoingMessageType = "ready" | "renderStateChanged" | "lineActivated" | "selectionChanged";
-export type IncomingMessageType = "initialize" | "renderDocument" | "updateConfiguration" | "teardown";
+export type OutgoingMessageType =
+  | "ready"
+  | "renderStateChanged"
+  | "lineActivated"
+  | "selectionChanged"
+  | "annotationActivated";
+export type IncomingMessageType =
+  | "initialize"
+  | "renderDocument"
+  | "updateConfiguration"
+  | "updateAnnotations"
+  | "teardown";
 
 export type ResolvedAppearance = "light" | "dark";
 export type DiffStyle = "split" | "unified";
@@ -11,6 +21,7 @@ export type InlineChangeStyle = "wordAlt" | "word" | "char" | "none";
 export type RenderState = "loading" | "rendered" | "failed";
 export type LineSide = "old" | "new" | "unified";
 export type LineKind = "context" | "addition" | "deletion" | "metadata" | "expanded";
+export type AnnotationSide = "old" | "new";
 
 export interface Envelope<TType extends string, TPayload> {
   protocolVersion: number;
@@ -54,6 +65,28 @@ export interface RenderDocumentPayload {
     }>;
   };
   configuration: RenderConfigurationPayload;
+  annotations?: AnnotationPayload[];
+}
+
+/**
+ * Host-provided content rendered beneath a diff line.
+ *
+ * The host owns the content: `html` is inserted as-is apart from script
+ * stripping, `text` is inserted as plain text. Multi-line annotations are
+ * anchored to a single line; the host draws range information into its content.
+ */
+export interface AnnotationPayload {
+  id: string;
+  fileIndex: number;
+  side: AnnotationSide;
+  lineNumber: number;
+  kind?: string;
+  html?: string;
+  text?: string;
+}
+
+export interface UpdateAnnotationsPayload {
+  annotations: AnnotationPayload[];
 }
 
 export interface ReadyPayload {
@@ -97,4 +130,13 @@ export interface SelectionPayload {
 
 export interface SelectionChangedPayload {
   selection: SelectionPayload | null;
+}
+
+export interface AnnotationActivatedPayload {
+  id: string;
+  action: string;
+  kind?: string;
+  fileIndex: number;
+  side: AnnotationSide;
+  lineNumber: number;
 }
